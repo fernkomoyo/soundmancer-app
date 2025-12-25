@@ -1,3 +1,4 @@
+!macro customInstall
   ; Check if already installed
   ReadRegStr $0 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\VB-Audio Virtual Cable" "DisplayName"
   
