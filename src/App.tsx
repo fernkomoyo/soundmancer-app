@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import logoHeader from './assets/logo-header.jpg';
 import './App.css';
 import { useAudioDevices } from './hooks/useAudioOutput';
 import { SoundGrid } from './components/SoundGrid';
@@ -273,7 +274,7 @@ function App() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <h1 className="text-4xl font-black tracking-tighter flex items-center gap-3 italic relative group">
-                <img src="/logo-header.jpg" alt="Logo" className="w-12 h-12 rounded-xl shadow-lg border border-white/10 group-hover:scale-110 transition-transform duration-500" />
+                <img src={logoHeader} alt="Logo" className="w-12 h-12 rounded-xl shadow-lg border border-white/10 group-hover:scale-110 transition-transform duration-500" />
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 glow-text animate-pulse-slow pr-2">
                   SoundMancer
                 </span>
