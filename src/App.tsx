@@ -23,6 +23,7 @@ function App() {
   const [isPassthroughEnabled, setIsPassthroughEnabled] = useState(true);
   const [monitorVolume, setMonitorVolume] = useState(1.0); // 0 to 1
   const [broadcastVolume, setBroadcastVolume] = useState(1.0); // 0 to 1
+  const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSound, setEditingSound] = useState<Sound | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -30,11 +31,22 @@ function App() {
   const micAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // Derived state for categories
-  const categories = ['All', ...new Set(sounds.map(s => s.category || 'Uncategorized'))];
+  const categories = [
+    'All',
+    ...(sounds.some(s => s.isFavorite) ? ['Favorites'] : []),
+    ...new Set(sounds.map(s => s.category || 'Uncategorized'))
+  ];
 
-  const filteredSounds = selectedCategory === 'All'
-    ? sounds
-    : sounds.filter(s => (s.category || 'Uncategorized') === selectedCategory);
+  const filteredSounds = sounds.filter(s => {
+    if (selectedCategory === 'Favorites') {
+      return s.isFavorite && s.name.toLowerCase().includes(searchQuery.toLowerCase());
+    }
+
+    const matchesCategory = selectedCategory === 'All' || (s.category || 'Uncategorized') === selectedCategory;
+    const soundName = s.name || '';
+    const matchesSearch = soundName.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   // Load Sounds on Startup
   useEffect(() => {
@@ -214,6 +226,13 @@ function App() {
     updateSounds(newSounds);
   };
 
+  const toggleFavorite = (id: string) => {
+    const newSounds = sounds.map(s =>
+      s.id === id ? { ...s, isFavorite: !s.isFavorite } : s
+    );
+    updateSounds(newSounds);
+  };
+
   const handleSaveSound = (soundData: Partial<Sound> & { file: File | null }) => {
     if (editingSound) {
       // Update Existing
@@ -235,6 +254,8 @@ function App() {
             icon: soundData.icon || s.icon,
             category: soundData.category || s.category,
             keybind: soundData.keybind, // Allow clearing keybind
+            volume: soundData.volume !== undefined ? soundData.volume : s.volume,
+            isFavorite: s.isFavorite,
             path: newPath
           };
         }
@@ -260,7 +281,8 @@ function App() {
           path: filePath,
           icon: soundData.icon || '🎵',
           category: soundData.category || 'Uncategorized',
-          keybind: soundData.keybind
+          keybind: soundData.keybind,
+          volume: soundData.volume ?? 1
         };
 
         updateSounds([...sounds, newSound]);
@@ -336,6 +358,42 @@ function App() {
             </button>
           </div>
 
+          {/* Search and Stop All Bar */}
+          <div className="flex items-center gap-3 no-drag">
+            <div className="relative flex-1 group">
+              <input
+                type="text"
+                placeholder="Search sounds..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-black/20 border border-white/10 hover:border-white/20 focus:border-blue-400/50 rounded-xl py-2 pl-10 pr-10 text-sm transition-all outline-none text-white"
+              />
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-2.5 text-gray-500 group-focus-within:text-blue-400 transition-colors pointer-events-none">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-2.5 text-gray-500 hover:text-white transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={() => window.dispatchEvent(new Event('stop-all-sounds'))}
+              className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/50 text-red-400 px-4 py-2 rounded-xl text-sm font-bold tracking-wide transition-all active:scale-95 flex items-center gap-2 group"
+            >
+              <span className="w-2 h-2 bg-red-400 rounded-xs group-hover:scale-125 transition-transform" />
+              STOP ALL
+            </button>
+          </div>
+
           {/* Category Tabs */}
           <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide no-drag items-center">
             {categories.map(cat => (
@@ -385,6 +443,7 @@ function App() {
           onDelete={handleDeleteSound}
           //@ts-ignore
           onEdit={handleEditSound}
+          onToggleFavorite={toggleFavorite}
           isCompact={isMiniMode}
         />
       </main>

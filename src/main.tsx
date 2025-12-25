@@ -1,15 +1,18 @@
 import React from 'react'
-import ReactDOM from 'react-dom/client'
+import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
+import ErrorBoundary from './components/ErrorBoundary.tsx'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </React.StrictMode>,
-)
+);
 
 // Use contextBridge
-window.ipcRenderer.on('main-process-message', (_event, message) => {
+(window as any).ipcRenderer?.on('main-process-message', (_event: any, message: any) => {
   console.log(message)
 })

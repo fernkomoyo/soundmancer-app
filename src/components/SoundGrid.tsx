@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Sound } from '../types';
 import { SoundButton } from './SoundButton';
@@ -10,7 +11,8 @@ interface SoundGridProps {
     onAddSound: () => void;
     onDelete: (id: string) => void;
     onEdit: (sound: Sound) => void;
-    isCompact?: boolean;
+    onToggleFavorite: (id: string) => void;
+    isCompact: boolean;
 }
 
 export const SoundGrid: React.FC<SoundGridProps> = ({
@@ -21,14 +23,15 @@ export const SoundGrid: React.FC<SoundGridProps> = ({
     onAddSound,
     onDelete,
     onEdit,
-    isCompact = false,
+    onToggleFavorite,
+    isCompact,
 }) => {
     return (
         <div className="p-4">
             <div className={`grid gap-4 pb-20 ${isCompact
                 ? 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5'
                 : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'
-                }`}>
+                } `}>
                 {sounds.map(sound => (
                     <SoundButton
                         key={sound.id}
@@ -38,6 +41,7 @@ export const SoundGrid: React.FC<SoundGridProps> = ({
                         broadcastVolume={broadcastVolume}
                         onDelete={onDelete}
                         onEdit={onEdit}
+                        onToggleFavorite={onToggleFavorite}
                         isCompact={isCompact}
                     />
                 ))}

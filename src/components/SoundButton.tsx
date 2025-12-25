@@ -8,6 +8,7 @@ interface SoundButtonProps {
     broadcastVolume: number;
     onDelete?: (id: string) => void;
     onEdit?: (sound: Sound) => void;
+    onToggleFavorite?: (id: string) => void;
     isCompact?: boolean;
 }
 
@@ -18,6 +19,7 @@ export const SoundButton: React.FC<SoundButtonProps> = ({
     broadcastVolume,
     onDelete,
     onEdit,
+    onToggleFavorite,
     isCompact = false,
 }) => {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -57,11 +59,25 @@ export const SoundButton: React.FC<SoundButtonProps> = ({
         };
         window.addEventListener(`trigger-sound-${sound.id}`, handleGlobalTrigger);
 
+        const handleStopAll = () => {
+            if (monitor) {
+                monitor.pause();
+                monitor.currentTime = 0;
+            }
+            if (broadcast) {
+                broadcast.pause();
+                broadcast.currentTime = 0;
+            }
+            setIsPlaying(false);
+        };
+        window.addEventListener('stop-all-sounds', handleStopAll);
+
         return () => {
             monitor.removeEventListener('ended', handleEnded);
             monitor.removeEventListener('pause', handlePause);
             monitor.removeEventListener('play', handlePlay);
             window.removeEventListener(`trigger-sound-${sound.id}`, handleGlobalTrigger);
+            window.removeEventListener('stop-all-sounds', handleStopAll);
 
             monitor.pause();
             monitor.src = '';
@@ -73,7 +89,8 @@ export const SoundButton: React.FC<SoundButtonProps> = ({
     // Update volumes in real-time
     useEffect(() => {
         if (monitorAudioRef.current) {
-            monitorAudioRef.current.volume = (sound.volume ?? 1) * monitorVolume;
+            const vol = (sound.volume ?? 1) * monitorVolume;
+            monitorAudioRef.current.volume = Math.min(Math.max(vol, 0), 1);
         }
     }, [monitorVolume, sound.volume]);
 
@@ -155,6 +172,14 @@ export const SoundButton: React.FC<SoundButtonProps> = ({
             >
                 <div className="text-xl pointer-events-none">{sound.icon && sound.icon.match(/^(https?:\/\/|data:|media:\/\/)/) ? '🔊' : (sound.icon || '🔊')}</div>
                 <div className="text-xs font-bold text-white truncate flex-1 text-left">{sound.name}</div>
+                {onToggleFavorite && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onToggleFavorite(sound.id); }}
+                        className={`text-xs hover:scale-110 transition-transform ${sound.isFavorite ? 'text-red-500' : 'text-gray-600 hover:text-gray-400'}`}
+                    >
+                        {sound.isFavorite ? '❤️' : '🤍'}
+                    </button>
+                )}
             </div>
         );
     }
@@ -188,6 +213,27 @@ export const SoundButton: React.FC<SoundButtonProps> = ({
                 {sound.name}
             </div>
 
+            {/* Favorite Button (Absolute Top Left) */}
+            {
+                onToggleFavorite && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleFavorite(sound.id);
+                        }}
+                        className={`
+                        absolute top-2 left-2 z-20 
+                        ${sound.isFavorite ? 'opacity-100' : 'opacity-40 hover:opacity-100'}
+                        transition-all duration-200 hover:scale-110
+                    `}
+                    >
+                        <span className={`text-lg drop-shadow-md ${sound.isFavorite ? 'grayscale-0' : 'grayscale opacity-50 hover:grayscale-0 hover:opacity-100'}`}>
+                            {sound.isFavorite ? '❤️' : '🤍'}
+                        </span>
+                    </button>
+                )
+            }
+
             {/* Controls overlay (visible on hover) */}
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-1 z-20">
                 {onEdit && (
@@ -213,6 +259,6 @@ export const SoundButton: React.FC<SoundButtonProps> = ({
                     </button>
                 )}
             </div>
-        </div>
+        </div >
     );
 };

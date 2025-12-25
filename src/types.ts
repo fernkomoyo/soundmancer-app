@@ -7,6 +7,7 @@ export interface Sound {
     volume?: number; // 0-1
     category?: string;
     keybind?: string;
+    isFavorite?: boolean;
 }
 
 export interface OnlineSound {

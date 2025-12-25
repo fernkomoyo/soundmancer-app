@@ -22,6 +22,7 @@ export const SoundModal: React.FC<SoundModalProps> = ({
     const [icon, setIcon] = useState('🎵');
     const [category, setCategory] = useState('Uncategorized');
     const [keybind, setKeybind] = useState('');
+    const [volume, setVolume] = useState(1.0);
     const [file, setFile] = useState<File | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -41,6 +42,7 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                 setIcon(initialSound.icon || '🎵');
                 setCategory(initialSound.category || categories[0] || 'Uncategorized');
                 setKeybind(initialSound.keybind || '');
+                setVolume(initialSound.volume ?? 1.0);
                 // For editing, we don't necessarily need a file ref unless they change it
                 // We'll handle this by making file optional in onSave
                 setFile(null);
@@ -51,6 +53,7 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                 setIcon('🎵');
                 setCategory(categories[0] || 'Uncategorized');
                 setKeybind('');
+                setVolume(1.0);
                 setFile(null);
                 setShowTrimmer(false);
                 setActiveTab('local');
@@ -112,6 +115,7 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                 icon,
                 category,
                 keybind,
+                volume,
                 file: file || null
             });
             onClose();
@@ -172,7 +176,7 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                     </div>
                 ) : (
                     <>
-                        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
+                        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4 flex-1 overflow-y-auto min-h-0">
 
                             {/* File Upload Area */}
                             <div
@@ -239,6 +243,23 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                                         placeholder="Vine Boom"
                                         className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                         required
+                                    />
+                                </div>
+
+                                {/* Volume Slider */}
+                                <div className="col-span-4 flex flex-col gap-1">
+                                    <div className="flex justify-between items-center text-xs font-bold text-gray-400 uppercase">
+                                        <label>Volume</label>
+                                        <span className="text-blue-400">{(volume * 100).toFixed(0)}%</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="1"
+                                        step="0.05"
+                                        value={volume}
+                                        onChange={(e) => setVolume(parseFloat(e.target.value))}
+                                        className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
                                     />
                                 </div>
 
