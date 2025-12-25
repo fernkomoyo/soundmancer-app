@@ -36,7 +36,7 @@
       }
     ],
     "icon": "public/logo.jpg",
-    "artifactName": "${productName}-Windows-${version}-Setup.${ext}"
+    "artifactName": "soundboard-app-Windows-${version}-Setup.${ext}"
   },
   "nsis": {
     "oneClick": false,
