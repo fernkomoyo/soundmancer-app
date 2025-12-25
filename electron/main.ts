@@ -48,6 +48,17 @@ function createWindow() {
 }
 
 // Auto-Updater Events
+autoUpdater.logger = console;
+// @ts-ignore
+autoUpdater.logger.transports.file.level = 'info';
+
+autoUpdater.on('checking-for-update', () => {
+  console.log('Checking for updates...');
+});
+
+autoUpdater.on('error', (err) => {
+  console.error('Error in auto-updater: ', err);
+});
 autoUpdater.on('update-available', () => {
   win?.webContents.send('update-available');
 });
@@ -205,5 +216,9 @@ app.whenReady().then(() => {
 
   ipcMain.handle('quit-and-install', () => {
     autoUpdater.quitAndInstall();
+  });
+
+  ipcMain.handle('get-app-version', () => {
+    return app.getVersion();
   });
 })
