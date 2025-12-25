@@ -1,4 +1,4 @@
-import $t, { app as ct, globalShortcut as Ki, BrowserWindow as mo, protocol as bf, ipcMain as Qe } from "electron";
+import $t, { app as ct, globalShortcut as Ki, BrowserWindow as mo, protocol as bf, ipcMain as Je } from "electron";
 import { fileURLToPath as Of } from "node:url";
 import Le from "node:path";
 import Mt from "node:fs";
@@ -17,7 +17,7 @@ import ir from "url";
 import Rf from "string_decoder";
 import fl from "zlib";
 import Pf from "http";
-var Se = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {}, Ye = {}, xt = {}, be = {};
+var Se = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {}, Ze = {}, xt = {}, be = {};
 be.fromCallback = function(e) {
   return Object.defineProperty(function(...t) {
     if (typeof t[t.length - 1] == "function") e.apply(this, t);
@@ -606,7 +606,7 @@ vo.makeDirSync = (e, t) => (ml(e), pl.mkdirSync(e, {
   recursive: !0
 }));
 const Wf = be.fromPromise, { makeDir: Yf, makeDirSync: vi } = vo, wi = Wf(Yf);
-var Xe = {
+var ze = {
   mkdirs: wi,
   mkdirsSync: vi,
   // alias
@@ -736,7 +736,7 @@ var or = {
   isSrcSubdir: wo,
   areIdentical: Hr
 };
-const Pe = Oe, Cr = re, nd = Xe.mkdirs, id = Lt.pathExists, od = yl.utimesMillis, br = or;
+const Pe = Oe, Cr = re, nd = ze.mkdirs, id = Lt.pathExists, od = yl.utimesMillis, br = or;
 function ad(e, t, r, n) {
   typeof r == "function" && !n ? (n = r, r = {}) : typeof r == "function" && (r = { filter: r }), n = n || function() {
   }, r = r || {}, r.clobber = "clobber" in r ? !!r.clobber : !0, r.overwrite = "overwrite" in r ? !!r.overwrite : r.clobber, r.preserveTimestamps && process.arch === "ia32" && process.emitWarning(
@@ -834,7 +834,7 @@ function yd(e, t, r) {
   Pe.unlink(t, (n) => n ? r(n) : Pe.symlink(e, t, r));
 }
 var vd = ad;
-const we = Oe, Or = re, wd = Xe.mkdirsSync, _d = yl.utimesMillisSync, Ir = or;
+const we = Oe, Or = re, wd = ze.mkdirsSync, _d = yl.utimesMillisSync, Ir = or;
 function Ad(e, t, r) {
   typeof r == "function" && (r = { filter: r }), r = r || {}, r.clobber = "clobber" in r ? !!r.clobber : !0, r.overwrite = "overwrite" in r ? !!r.overwrite : r.clobber, r.preserveTimestamps && process.arch === "ia32" && process.emitWarning(
     `Using the preserveTimestamps option in 32-bit node is not recommended;
@@ -1086,7 +1086,7 @@ var Vn = {
   remove: jd(Hd),
   removeSync: qd
 };
-const Gd = be.fromPromise, Dl = xt, $l = re, Fl = Xe, xl = Vn, _a = Gd(async function(t) {
+const Gd = be.fromPromise, Dl = xt, $l = re, Fl = ze, xl = Vn, _a = Gd(async function(t) {
   let r;
   try {
     r = await Dl.readdir(t);
@@ -1112,7 +1112,7 @@ var Vd = {
   emptyDir: _a,
   emptydir: _a
 };
-const Wd = be.fromCallback, Ll = re, ut = Oe, Ul = Xe;
+const Wd = be.fromCallback, Ll = re, ut = Oe, Ul = ze;
 function Yd(e, t) {
   function r() {
     ut.writeFile(e, "", (n) => {
@@ -1155,7 +1155,7 @@ var Xd = {
   createFile: Wd(Yd),
   createFileSync: zd
 };
-const Kd = be.fromCallback, kl = re, lt = Oe, Ml = Xe, Jd = Lt.pathExists, { areIdentical: Bl } = or;
+const Kd = be.fromCallback, kl = re, lt = Oe, Ml = ze, Jd = Lt.pathExists, { areIdentical: Bl } = or;
 function Qd(e, t, r) {
   function n(i, o) {
     lt.link(i, o, (a) => {
@@ -1265,7 +1265,7 @@ var sh = {
   symlinkType: oh,
   symlinkTypeSync: ah
 };
-const lh = be.fromCallback, Hl = re, Be = xt, ql = Xe, ch = ql.mkdirs, uh = ql.mkdirsSync, Gl = ih, fh = Gl.symlinkPaths, dh = Gl.symlinkPathsSync, Vl = sh, hh = Vl.symlinkType, ph = Vl.symlinkTypeSync, mh = Lt.pathExists, { areIdentical: Wl } = or;
+const lh = be.fromCallback, Hl = re, Be = xt, ql = ze, ch = ql.mkdirs, uh = ql.mkdirsSync, Gl = ih, fh = Gl.symlinkPaths, dh = Gl.symlinkPathsSync, Vl = sh, hh = Vl.symlinkType, ph = Vl.symlinkTypeSync, mh = Lt.pathExists, { areIdentical: Wl } = or;
 function gh(e, t, r, n) {
   n = typeof r == "function" ? r : n, r = typeof r == "function" ? !1 : r, Be.lstat(t, (i, o) => {
     !i && o.isSymbolicLink() ? Promise.all([
@@ -1398,7 +1398,7 @@ var Rh = {
   writeJson: fn.writeFile,
   writeJsonSync: fn.writeFileSync
 };
-const Ph = be.fromCallback, Ar = Oe, Xl = re, Kl = Xe, Nh = Lt.pathExists;
+const Ph = be.fromCallback, Ar = Oe, Xl = re, Kl = ze, Nh = Lt.pathExists;
 function Dh(e, t, r, n) {
   typeof r == "function" && (n = r, r = "utf8");
   const i = Xl.dirname(e);
@@ -1443,7 +1443,7 @@ Ce.writeJSONSync = Ce.writeJsonSync;
 Ce.readJSON = Ce.readJson;
 Ce.readJSONSync = Ce.readJsonSync;
 var qh = Ce;
-const Gh = Oe, Ji = re, Vh = Ao.copy, Jl = Vn.remove, Wh = Xe.mkdirp, Yh = Lt.pathExists, Pa = or;
+const Gh = Oe, Ji = re, Vh = Ao.copy, Jl = Vn.remove, Wh = ze.mkdirp, Yh = Lt.pathExists, Pa = or;
 function zh(e, t, r, n) {
   typeof r == "function" && (n = r, r = {}), r = r || {};
   const i = r.overwrite || r.clobber || !1;
@@ -1477,7 +1477,7 @@ function Kh(e, t, r, n) {
   }, (o) => o ? n(o) : Jl(e, n));
 }
 var Jh = zh;
-const Ql = Oe, Qi = re, Qh = Ao.copySync, Zl = Vn.removeSync, Zh = Xe.mkdirpSync, Da = or;
+const Ql = Oe, Qi = re, Qh = Ao.copySync, Zl = Vn.removeSync, Zh = ze.mkdirpSync, Da = or;
 function ep(e, t, r) {
   r = r || {};
   const n = r.overwrite || r.clobber || !1, { srcStat: i, isChangingCase: o = !1 } = Da.checkPathsSync(e, t, "move", r);
@@ -1521,7 +1521,7 @@ var ap = {
   ...Vd,
   ...vh,
   ...qh,
-  ...Xe,
+  ...ze,
   ...ap,
   ...Co,
   ...Lt,
@@ -4285,7 +4285,7 @@ var Nc = new Ym("tag:yaml.org,2002:set", {
 function Wa(e) {
   return Object.prototype.toString.call(e);
 }
-function ze(e) {
+function Ye(e) {
   return e === 10 || e === 13;
 }
 function Dt(e) {
@@ -4406,7 +4406,7 @@ function ae(e, t, r) {
       do
         i = e.input.charCodeAt(++e.position);
       while (i !== 10 && i !== 13 && i !== 0);
-    if (ze(i))
+    if (Ye(i))
       for ($o(e), i = e.input.charCodeAt(e.position), n++, e.lineIndent = 0; i === 32; )
         e.lineIndent++, i = e.input.charCodeAt(++e.position);
     else
@@ -4436,7 +4436,7 @@ function lg(e, t, r) {
     } else {
       if (e.position === e.lineStart && Xn(e) || r && Yt(g))
         break;
-      if (ze(g))
+      if (Ye(g))
         if (l = e.line, m = e.lineStart, c = e.lineIndent, ae(e, !1, -1), e.lineIndent >= t) {
           s = !0, g = e.input.charCodeAt(e.position);
           continue;
@@ -4459,7 +4459,7 @@ function cg(e, t) {
         n = e.position, e.position++, i = e.position;
       else
         return !0;
-    else ze(r) ? (dt(e, n, i, !0), Fo(e, ae(e, !1, t)), n = i = e.position) : e.position === e.lineStart && Xn(e) ? L(e, "unexpected end of the document within a single quoted scalar") : (e.position++, i = e.position);
+    else Ye(r) ? (dt(e, n, i, !0), Fo(e, ae(e, !1, t)), n = i = e.position) : e.position === e.lineStart && Xn(e) ? L(e, "unexpected end of the document within a single quoted scalar") : (e.position++, i = e.position);
   L(e, "unexpected end of the stream within a single quoted scalar");
 }
 function ug(e, t) {
@@ -4470,7 +4470,7 @@ function ug(e, t) {
     if (s === 34)
       return dt(e, r, e.position, !0), e.position++, !0;
     if (s === 92) {
-      if (dt(e, r, e.position, !0), s = e.input.charCodeAt(++e.position), ze(s))
+      if (dt(e, r, e.position, !0), s = e.input.charCodeAt(++e.position), Ye(s))
         ae(e, !1, t);
       else if (s < 256 && kc[s])
         e.result += Mc[s], e.position++;
@@ -4481,7 +4481,7 @@ function ug(e, t) {
       } else
         L(e, "unknown escape sequence");
       r = n = e.position;
-    } else ze(s) ? (dt(e, r, n, !0), Fo(e, ae(e, !1, t)), r = n = e.position) : e.position === e.lineStart && Xn(e) ? L(e, "unexpected end of the document within a double quoted scalar") : (e.position++, n = e.position);
+    } else Ye(s) ? (dt(e, r, n, !0), Fo(e, ae(e, !1, t)), r = n = e.position) : e.position === e.lineStart && Xn(e) ? L(e, "unexpected end of the document within a double quoted scalar") : (e.position++, n = e.position);
   }
   L(e, "unexpected end of the stream within a double quoted scalar");
 }
@@ -4522,12 +4522,12 @@ function dg(e, t) {
     if (f === 35)
       do
         f = e.input.charCodeAt(++e.position);
-      while (!ze(f) && f !== 0);
+      while (!Ye(f) && f !== 0);
   }
   for (; f !== 0; ) {
     for ($o(e), e.lineIndent = 0, f = e.input.charCodeAt(e.position); (!a || e.lineIndent < s) && f === 32; )
       e.lineIndent++, f = e.input.charCodeAt(++e.position);
-    if (!a && e.lineIndent > s && (s = e.lineIndent), ze(f)) {
+    if (!a && e.lineIndent > s && (s = e.lineIndent), Ye(f)) {
       l++;
       continue;
     }
@@ -4541,7 +4541,7 @@ function dg(e, t) {
 `, o ? 1 + l : l)) : m ? (m = !1, e.result += Rt.repeat(`
 `, l + 1)) : l === 0 ? o && (e.result += " ") : e.result += Rt.repeat(`
 `, l) : e.result += Rt.repeat(`
-`, o ? 1 + l : l), o = !0, a = !0, l = 0, r = e.position; !ze(f) && f !== 0; )
+`, o ? 1 + l : l), o = !0, a = !0, l = 0, r = e.position; !Ye(f) && f !== 0; )
       f = e.input.charCodeAt(++e.position);
     dt(e, r, e.position, !1);
   }
@@ -4664,10 +4664,10 @@ function Eg(e) {
       if (a === 35) {
         do
           a = e.input.charCodeAt(++e.position);
-        while (a !== 0 && !ze(a));
+        while (a !== 0 && !Ye(a));
         break;
       }
-      if (ze(a)) break;
+      if (Ye(a)) break;
       for (r = e.position; a !== 0 && !Ne(a); )
         a = e.input.charCodeAt(++e.position);
       i.push(e.input.slice(r, e.position));
@@ -5972,7 +5972,7 @@ Bn.exports;
     return this.size += this.has(p) ? 0 : 1, I[p] = fr && v === void 0 ? n : v, this;
   }
   At.prototype.clear = Lu, At.prototype.delete = Uu, At.prototype.get = ku, At.prototype.has = Mu, At.prototype.set = Bu;
-  function Ke(p) {
+  function Xe(p) {
     var v = -1, I = p == null ? 0 : p.length;
     for (this.clear(); ++v < I; ) {
       var F = p[v];
@@ -6000,7 +6000,7 @@ Bn.exports;
     var I = this.__data__, F = nn(I, p);
     return F < 0 ? (++this.size, I.push([p, v])) : I[F][1] = v, this;
   }
-  Ke.prototype.clear = ju, Ke.prototype.delete = Hu, Ke.prototype.get = qu, Ke.prototype.has = Gu, Ke.prototype.set = Vu;
+  Xe.prototype.clear = ju, Xe.prototype.delete = Hu, Xe.prototype.get = qu, Xe.prototype.has = Gu, Xe.prototype.set = Vu;
   function St(p) {
     var v = -1, I = p == null ? 0 : p.length;
     for (this.clear(); ++v < I; ) {
@@ -6011,7 +6011,7 @@ Bn.exports;
   function Wu() {
     this.size = 0, this.__data__ = {
       hash: new At(),
-      map: new (ur || Ke)(),
+      map: new (ur || Xe)(),
       string: new At()
     };
   }
@@ -6043,11 +6043,11 @@ Bn.exports;
   }
   rn.prototype.add = rn.prototype.push = Ju, rn.prototype.has = Qu;
   function nt(p) {
-    var v = this.__data__ = new Ke(p);
+    var v = this.__data__ = new Xe(p);
     this.size = v.size;
   }
   function Zu() {
-    this.__data__ = new Ke(), this.size = 0;
+    this.__data__ = new Xe(), this.size = 0;
   }
   function ef(p) {
     var v = this.__data__, I = v.delete(p);
@@ -6061,7 +6061,7 @@ Bn.exports;
   }
   function nf(p, v) {
     var I = this.__data__;
-    if (I instanceof Ke) {
+    if (I instanceof Xe) {
       var F = I.__data__;
       if (!ur || F.length < r - 1)
         return F.push([p, v]), this.size = ++I.size, this;
@@ -6113,8 +6113,8 @@ Bn.exports;
     if (!(I & i)) {
       var Fe = $e && Ve.call(p, "__wrapped__"), xe = Me && Ve.call(v, "__wrapped__");
       if (Fe || xe) {
-        var ot = Fe ? p.value() : p, Je = xe ? v.value() : v;
-        return H || (H = new nt()), Q(ot, Je, I, F, H);
+        var ot = Fe ? p.value() : p, Ke = xe ? v.value() : v;
+        return H || (H = new nt()), Q(ot, Ke, I, F, H);
       }
     }
     return ve ? (H || (H = new nt()), df(p, v, I, F, Q, H)) : !1;
@@ -6155,8 +6155,8 @@ Bn.exports;
         break;
       }
       if (ve) {
-        if (!se(v, function(Je, Ct) {
-          if (!Qr(ve, Ct) && (Fe === Je || Q(Fe, Je, I, F, H)))
+        if (!se(v, function(Ke, Ct) {
+          if (!Qr(ve, Ct) && (Fe === Ke || Q(Fe, Ke, I, F, H)))
             return ve.push(Ct);
         })) {
           Me = !1;
@@ -6220,10 +6220,10 @@ Bn.exports;
     H.set(p, v), H.set(v, p);
     for (var ot = ie; ++Me < me; ) {
       ve = ue[Me];
-      var Je = p[ve], Ct = v[ve];
+      var Ke = p[ve], Ct = v[ve];
       if (F)
-        var fa = ie ? F(Ct, Je, ve, v, p, H) : F(Je, Ct, ve, p, v, H);
-      if (!(fa === void 0 ? Je === Ct || Q(Je, Ct, I, F, H) : fa)) {
+        var fa = ie ? F(Ct, Ke, ve, v, p, H) : F(Ke, Ct, ve, p, v, H);
+      if (!(fa === void 0 ? Ke === Ct || Q(Ke, Ct, I, F, H) : fa)) {
         xe = !1;
         break;
       }
@@ -6754,16 +6754,16 @@ var Et = {};
 Object.defineProperty(Et, "__esModule", { value: !0 });
 Et.GitHubProvider = Et.BaseGitHubProvider = void 0;
 Et.computeReleaseNotes = pu;
-const Ze = he, Xt = lu, Iv = ir, Kt = Ue, uo = le, Hi = /\/tag\/([^/]+)$/;
+const Qe = he, Xt = lu, Iv = ir, Kt = Ue, uo = le, Hi = /\/tag\/([^/]+)$/;
 class hu extends uo.Provider {
   constructor(t, r, n) {
     super({
       ...n,
       /* because GitHib uses S3 */
       isUseMultipleRangeRequest: !1
-    }), this.options = t, this.baseUrl = (0, Kt.newBaseUrl)((0, Ze.githubUrl)(t, r));
+    }), this.options = t, this.baseUrl = (0, Kt.newBaseUrl)((0, Qe.githubUrl)(t, r));
     const i = r === "github.com" ? "api.github.com" : r;
-    this.baseApiUrl = (0, Kt.newBaseUrl)((0, Ze.githubUrl)(t, i));
+    this.baseApiUrl = (0, Kt.newBaseUrl)((0, Qe.githubUrl)(t, i));
   }
   computeGithubBasePath(t) {
     const r = this.options.host;
@@ -6781,9 +6781,9 @@ class Rv extends hu {
   }
   async getLatestVersion() {
     var t, r, n, i, o;
-    const a = new Ze.CancellationToken(), s = await this.httpRequest((0, Kt.newUrlFromBase)(`${this.basePath}.atom`, this.baseUrl), {
+    const a = new Qe.CancellationToken(), s = await this.httpRequest((0, Kt.newUrlFromBase)(`${this.basePath}.atom`, this.baseUrl), {
       accept: "application/xml, application/atom+xml, text/xml, */*"
-    }, a), l = (0, Ze.parseXml)(s);
+    }, a), l = (0, Qe.parseXml)(s);
     let m = l.element("entry", !1, "No published versions on GitHub"), c = null;
     try {
       if (this.updater.allowPrerelease) {
@@ -6814,12 +6814,12 @@ class Rv extends hu {
           }
       }
     } catch (A) {
-      throw (0, Ze.newError)(`Cannot parse releases feed: ${A.stack || A.message},
+      throw (0, Qe.newError)(`Cannot parse releases feed: ${A.stack || A.message},
 XML:
 ${s}`, "ERR_UPDATER_INVALID_RELEASE_FEED");
     }
     if (c == null)
-      throw (0, Ze.newError)("No published versions on GitHub", "ERR_UPDATER_NO_PUBLISHED_VERSIONS");
+      throw (0, Qe.newError)("No published versions on GitHub", "ERR_UPDATER_NO_PUBLISHED_VERSIONS");
     let f, h = "", g = "";
     const _ = async (A) => {
       h = (0, Kt.getChannelFilename)(A), g = (0, Kt.newUrlFromBase)(this.getBaseDownloadPath(String(c), h), this.baseUrl);
@@ -6827,7 +6827,7 @@ ${s}`, "ERR_UPDATER_INVALID_RELEASE_FEED");
       try {
         return await this.executor.request(T, a);
       } catch (S) {
-        throw S instanceof Ze.HttpError && S.statusCode === 404 ? (0, Ze.newError)(`Cannot find ${h} in the latest release artifacts (${g}): ${S.stack || S.message}`, "ERR_UPDATER_CHANNEL_FILE_NOT_FOUND") : S;
+        throw S instanceof Qe.HttpError && S.statusCode === 404 ? (0, Qe.newError)(`Cannot find ${h} in the latest release artifacts (${g}): ${S.stack || S.message}`, "ERR_UPDATER_CHANNEL_FILE_NOT_FOUND") : S;
       }
     };
     try {
@@ -6851,7 +6851,7 @@ ${s}`, "ERR_UPDATER_INVALID_RELEASE_FEED");
       const i = await this.httpRequest(n, { Accept: "application/json" }, t);
       return i == null ? null : JSON.parse(i).tag_name;
     } catch (i) {
-      throw (0, Ze.newError)(`Unable to find latest version on GitHub (${n}), please ensure a production release exists: ${i.stack || i.message}`, "ERR_UPDATER_LATEST_VERSION_NOT_FOUND");
+      throw (0, Qe.newError)(`Unable to find latest version on GitHub (${n}), please ensure a production release exists: ${i.stack || i.message}`, "ERR_UPDATER_LATEST_VERSION_NOT_FOUND");
     }
   }
   get basePath() {
@@ -8621,7 +8621,7 @@ Mr.NsisUpdater = Jw;
     enumerable: !0,
     get: () => _ || y()
   });
-})(Ye);
+})(Ze);
 const wu = Le.dirname(Of(import.meta.url));
 process.env.APP_ROOT = Le.join(wu, "..");
 const po = process.env.VITE_DEV_SERVER_URL, E_ = Le.join(process.env.APP_ROOT, "dist-electron"), _u = Le.join(process.env.APP_ROOT, "dist");
@@ -8642,18 +8642,17 @@ function Au() {
     fe == null || fe.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
   }), po ? fe.loadURL(po) : fe.loadFile(Le.join(_u, "index.html"));
 }
-Ye.autoUpdater.logger = console;
-Ye.autoUpdater.logger.transports.file.level = "info";
-Ye.autoUpdater.on("checking-for-update", () => {
+Ze.autoUpdater.logger = console;
+Ze.autoUpdater.on("checking-for-update", () => {
   console.log("Checking for updates...");
 });
-Ye.autoUpdater.on("error", (e) => {
+Ze.autoUpdater.on("error", (e) => {
   console.error("Error in auto-updater: ", e);
 });
-Ye.autoUpdater.on("update-available", () => {
+Ze.autoUpdater.on("update-available", () => {
   fe == null || fe.webContents.send("update-available");
 });
-Ye.autoUpdater.on("update-downloaded", () => {
+Ze.autoUpdater.on("update-downloaded", () => {
   fe == null || fe.webContents.send("update-downloaded");
 });
 ct.on("window-all-closed", () => {
@@ -8667,7 +8666,7 @@ ct.on("activate", () => {
 });
 ct.whenReady().then(() => {
   try {
-    Ye.autoUpdater.checkForUpdatesAndNotify();
+    Ze.autoUpdater.checkForUpdatesAndNotify();
   } catch (t) {
     console.error("Auto-update check failed:", t);
   }
@@ -8676,7 +8675,7 @@ ct.whenReady().then(() => {
     r({ path: i });
   }), Au();
   const e = Le.join(ct.getPath("userData"), "sounds.json");
-  Qe.handle("load-sounds", async () => {
+  Je.handle("load-sounds", async () => {
     try {
       if (!Mt.existsSync(e)) return [];
       const t = await Mt.promises.readFile(e, "utf-8");
@@ -8684,13 +8683,13 @@ ct.whenReady().then(() => {
     } catch (t) {
       return console.error("Failed to load sounds:", t), [];
     }
-  }), Qe.handle("save-sounds", async (t, r) => {
+  }), Je.handle("save-sounds", async (t, r) => {
     try {
       return await Mt.promises.writeFile(e, JSON.stringify(r, null, 2)), { success: !0 };
     } catch (n) {
       return console.error("Failed to save sounds:", n), { success: !1, error: n };
     }
-  }), Qe.handle("search-sounds", async (t, r) => {
+  }), Je.handle("search-sounds", async (t, r) => {
     try {
       const n = await fetch(`https://www.myinstants.com/api/v1/instants/?format=json&name=${encodeURIComponent(r)}`);
       if (!n.ok) throw new Error("API request failed");
@@ -8708,10 +8707,10 @@ ct.whenReady().then(() => {
     } catch (n) {
       return console.error("Search failed:", n), [];
     }
-  }), Qe.handle("toggle-mini-mode", async (t, r) => {
+  }), Je.handle("toggle-mini-mode", async (t, r) => {
     const n = mo.getAllWindows()[0];
     n && (r ? (n.setSize(300, 400), n.setAlwaysOnTop(!0, "screen-saver")) : (n.setSize(1e3, 800), n.setAlwaysOnTop(!1)));
-  }), Qe.handle("download-sound", async (t, { url: r, fileName: n }) => {
+  }), Je.handle("download-sound", async (t, { url: r, fileName: n }) => {
     try {
       const i = await fetch(r);
       if (!i.ok) throw new Error("Download failed");
@@ -8722,7 +8721,7 @@ ct.whenReady().then(() => {
     } catch (i) {
       throw console.error("Download failed:", i), i;
     }
-  }), Qe.handle("update-global-shortcuts", (t, r) => (Ki.unregisterAll(), r.forEach((n) => {
+  }), Je.handle("update-global-shortcuts", (t, r) => (Ki.unregisterAll(), r.forEach((n) => {
     if (n.keybind && n.keybind.trim() !== "")
       try {
         Ki.register(n.keybind, () => {
@@ -8731,11 +8730,11 @@ ct.whenReady().then(() => {
       } catch (i) {
         console.error(`Failed to register shortcut ${n.keybind}:`, i);
       }
-  }), !0)), Qe.handle("check-for-updates", () => {
-    Ye.autoUpdater.checkForUpdatesAndNotify();
-  }), Qe.handle("quit-and-install", () => {
-    Ye.autoUpdater.quitAndInstall();
-  }), Qe.handle("get-app-version", () => ct.getVersion());
+  }), !0)), Je.handle("check-for-updates", () => {
+    Ze.autoUpdater.checkForUpdatesAndNotify();
+  }), Je.handle("quit-and-install", () => {
+    Ze.autoUpdater.quitAndInstall();
+  }), Je.handle("get-app-version", () => ct.getVersion());
 });
 export {
   E_ as MAIN_DIST,

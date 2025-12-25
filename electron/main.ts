@@ -49,8 +49,6 @@ function createWindow() {
 
 // Auto-Updater Events
 autoUpdater.logger = console;
-// @ts-ignore
-autoUpdater.logger.transports.file.level = 'info';
 
 autoUpdater.on('checking-for-update', () => {
   console.log('Checking for updates...');
