@@ -12,24 +12,53 @@ export const OnlineSoundSearch: React.FC<OnlineSoundSearchProps> = ({ onDownload
     const [loading, setLoading] = useState(false);
     const [playingPreview, setPlayingPreview] = useState<string | null>(null);
     const [downloadingId, setDownloadingId] = useState<string | null>(null);
+    const [page, setPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const [hasNext, setHasNext] = useState(false);
     const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
-    const handleSearch = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!query.trim()) return;
-
+    const performSearch = async (searchQuery: string, pageNum: number) => {
         setLoading(true);
-        setResults([]);
-
         try {
             // @ts-ignore - IPC
-            const sounds = await window.ipcRenderer.invoke('search-sounds', query);
-            setResults(sounds);
+            const response = await window.ipcRenderer.invoke('search-sounds', { query: searchQuery, page: pageNum });
+
+            // Handle both old array format (fallback) and new object format
+            let newResults = [];
+            if (Array.isArray(response)) {
+                newResults = response;
+                setHasNext(false);
+                setTotalCount(response.length);
+            } else {
+                newResults = response.results || [];
+                setHasNext(!!response.next);
+                setTotalCount(response.count || 0);
+            }
+
+            if (pageNum === 1) {
+                setResults(newResults);
+            } else {
+                setResults(prev => [...prev, ...newResults]);
+            }
         } catch (err) {
             console.error(err);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleSearch = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!query.trim()) return;
+        setPage(1);
+        setResults([]);
+        await performSearch(query, 1);
+    };
+
+    const handleLoadMore = async () => {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        await performSearch(query, nextPage);
     };
 
     const playPreview = (url: string) => {
@@ -78,6 +107,12 @@ export const OnlineSoundSearch: React.FC<OnlineSoundSearchProps> = ({ onDownload
             </form>
 
             <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                {results.length > 0 && (
+                    <div className="text-xs text-gray-500 mb-2">
+                        Found {totalCount} results
+                    </div>
+                )}
+
                 {results.length === 0 && !loading && (
                     <div className="text-center text-gray-500 py-8">
                         {query ? 'No results found.' : 'Search for sounds above.'}
@@ -108,6 +143,16 @@ export const OnlineSoundSearch: React.FC<OnlineSoundSearchProps> = ({ onDownload
                         </button>
                     </div>
                 ))}
+
+                {hasNext && (
+                    <button
+                        onClick={handleLoadMore}
+                        disabled={loading}
+                        className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm font-medium transition-colors mt-2"
+                    >
+                        {loading ? 'Loading...' : 'Load More'}
+                    </button>
+                )}
             </div>
         </div>
     );

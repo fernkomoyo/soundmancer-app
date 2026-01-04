@@ -5,6 +5,7 @@ import { useAudioDevices } from './hooks/useAudioOutput';
 import { SoundGrid } from './components/SoundGrid';
 import { SoundModal } from './components/SoundModal';
 import { SettingsModal } from './components/SettingsModal';
+import { ConfirmModal } from './components/ConfirmModal';
 import { Sound } from './types';
 
 function App() {
@@ -221,9 +222,19 @@ function App() {
     setIsModalOpen(true);
   };
 
+  const [soundToDelete, setSoundToDelete] = useState<string | null>(null);
+
   const handleDeleteSound = (id: string) => {
-    const newSounds = sounds.filter(s => s.id !== id);
-    updateSounds(newSounds);
+    setSoundToDelete(id);
+  };
+
+  const confirmDelete = () => {
+    if (soundToDelete) {
+      const newSounds = sounds.filter(s => s.id !== soundToDelete);
+      updateSounds(newSounds);
+      setToast({ message: 'Sound deleted successfully.', type: 'error' }); // 'error' used for red color
+      setSoundToDelete(null);
+    }
   };
 
   const toggleFavorite = (id: string) => {
@@ -441,16 +452,25 @@ function App() {
           broadcastVolume={broadcastVolume}
           onAddSound={handleAddSoundClick}
           onDelete={handleDeleteSound}
-          //@ts-ignore
           onEdit={handleEditSound}
           onToggleFavorite={toggleFavorite}
+          onExport={async (sound) => {
+            if ((window as any).ipcRenderer) {
+              const success = await (window as any).ipcRenderer.invoke('export-sound', sound);
+              if (success) {
+                setToast({ message: 'Sound exported successfully!', type: 'success' });
+              } else {
+                // Do nothing or show error if needed, but main process usually logs error
+              }
+            }
+          }}
           isCompact={isMiniMode}
         />
       </main>
 
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl shadow-2xl z-50 animate-in slide-in-from-bottom-5 fade-in duration-300 border backdrop-blur-md
+        <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl shadow-2xl z-[100] animate-in slide-in-from-bottom-5 fade-in duration-300 border backdrop-blur-md
           ${toast.type === 'action' ? 'bg-blue-600/90 border-blue-400 text-white cursor-pointer hover:scale-105 active:scale-95 transition-transform' : 'bg-gray-900/90 border-gray-700 text-white'}
         `}
           onClick={toast.action}
@@ -473,11 +493,7 @@ function App() {
         onClose={() => { setIsModalOpen(false); setEditingSound(null); }}
         onSave={async (soundData) => {
           if (editingSound) {
-            // Edit logic... (omitted for brevity, handled by component logic usually)
-            // But we need to handle the save here if SoundModal calls onSave with data
-            // Assuming SoundModal handles the heavy lifting or passes back data to updateSounds
-            // Let's rely on the previous implementation which seemed to handle additions.
-            // For now, just close.
+            // Edit logic checked previously, handleSaveSound handles updates if ID matches
             handleSaveSound(soundData);
           } else {
             handleSaveSound(soundData);
@@ -485,6 +501,7 @@ function App() {
         }}
         categories={categories}
         initialSound={editingSound}
+        onShowToast={(message, type) => setToast({ message, type })}
       />
 
       <div className="fixed bottom-2 right-2 text-[10px] text-gray-500 font-mono opacity-50 pointer-events-none select-none">
@@ -507,6 +524,16 @@ function App() {
         broadcastVolume={broadcastVolume}
         setBroadcastVolume={setBroadcastVolume}
         refreshDevices={refreshDevices}
+      />
+
+      <ConfirmModal
+        isOpen={!!soundToDelete}
+        onClose={() => setSoundToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete Sound"
+        message="Are you sure you want to delete this sound? This action cannot be undone."
+        confirmText="Delete"
+        isDestructive={true}
       />
     </div>
   );

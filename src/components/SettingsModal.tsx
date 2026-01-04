@@ -1,5 +1,6 @@
 import React from 'react';
 import { DeviceSelector } from './DeviceSelector';
+import { MicTest } from './MicTest';
 import { AudioDevice } from '../hooks/useAudioOutput';
 
 interface SettingsModalProps {
@@ -80,6 +81,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             selectedDeviceId={selectedInputId}
                             onDeviceSelect={setSelectedInputId}
                         />
+                        <MicTest deviceId={selectedInputId} />
 
                         <DeviceSelector
                             label="Output Device (Cable Input)"

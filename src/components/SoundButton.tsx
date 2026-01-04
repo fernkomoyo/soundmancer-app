@@ -9,6 +9,7 @@ interface SoundButtonProps {
     onDelete?: (id: string) => void;
     onEdit?: (sound: Sound) => void;
     onToggleFavorite?: (id: string) => void;
+    onExport?: (sound: Sound) => void;
     isCompact?: boolean;
 }
 
@@ -20,6 +21,7 @@ export const SoundButton: React.FC<SoundButtonProps> = ({
     onDelete,
     onEdit,
     onToggleFavorite,
+    onExport,
     isCompact = false,
 }) => {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -236,6 +238,15 @@ export const SoundButton: React.FC<SoundButtonProps> = ({
 
             {/* Controls overlay (visible on hover) */}
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-1 z-20">
+                {onExport && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onExport(sound); }}
+                        className="p-1 bg-gray-900 rounded text-xs hover:text-green-400"
+                        title="Download"
+                    >
+                        💾
+                    </button>
+                )}
                 {onEdit && (
                     <button
                         onClick={(e) => { e.stopPropagation(); onEdit(sound); }}
@@ -248,9 +259,7 @@ export const SoundButton: React.FC<SoundButtonProps> = ({
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            if (confirm('Delete this sound?')) {
-                                onDelete(sound.id);
-                            }
+                            onDelete(sound.id);
                         }}
                         className="p-1 bg-gray-900 rounded text-xs hover:text-red-400"
                         title="Delete"

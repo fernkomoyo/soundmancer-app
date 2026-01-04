@@ -12,6 +12,7 @@ interface SoundGridProps {
     onDelete: (id: string) => void;
     onEdit: (sound: Sound) => void;
     onToggleFavorite: (id: string) => void;
+    onExport?: (sound: Sound) => void;
     isCompact: boolean;
 }
 
@@ -24,6 +25,7 @@ export const SoundGrid: React.FC<SoundGridProps> = ({
     onDelete,
     onEdit,
     onToggleFavorite,
+    onExport,
     isCompact,
 }) => {
     return (
@@ -42,6 +44,7 @@ export const SoundGrid: React.FC<SoundGridProps> = ({
                         onDelete={onDelete}
                         onEdit={onEdit}
                         onToggleFavorite={onToggleFavorite}
+                        onExport={onExport}
                         isCompact={isCompact}
                     />
                 ))}

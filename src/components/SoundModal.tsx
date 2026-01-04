@@ -9,6 +9,7 @@ interface SoundModalProps {
     onSave: (soundData: Partial<Sound> & { file: File | null }) => void;
     categories: string[];
     initialSound?: Sound | null;
+    onShowToast?: (message: string, type: 'success' | 'info' | 'error') => void;
 }
 
 export const SoundModal: React.FC<SoundModalProps> = ({
@@ -17,6 +18,7 @@ export const SoundModal: React.FC<SoundModalProps> = ({
     onSave,
     categories,
     initialSound,
+    onShowToast,
 }) => {
     const [name, setName] = useState('');
     const [icon, setIcon] = useState('🎵');
@@ -77,14 +79,25 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                 type: 'audio/mpeg'
             };
 
-            setFile(mockFile as any);
-            setName(sound.name);
-            if (sound.icon) setIcon(sound.icon); // Or parse emoji if possible
+            // Quick Save immediate
+            onSave({
+                name: sound.name,
+                icon: sound.icon || '🎵',
+                category: categories[0] || 'Uncategorized',
+                keybind: '',
+                volume: 1.0,
+                file: mockFile as any
+            });
 
-            setActiveTab('local');
+            if (onShowToast) {
+                onShowToast(`Added "${sound.name}"!`, 'success');
+            }
 
         } catch (err) {
             console.error("Failed to download online sound", err);
+            if (onShowToast) {
+                onShowToast("Failed to download sound.", 'error');
+            }
         }
     };
 

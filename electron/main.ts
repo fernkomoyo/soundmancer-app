@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, protocol, globalShortcut } from 'electron'
+import { app, BrowserWindow, ipcMain, protocol, globalShortcut, dialog } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs'
@@ -124,15 +124,15 @@ app.whenReady().then(() => {
   })
 
   // Online Search Handler
-  ipcMain.handle('search-sounds', async (_event, query) => {
+  // Online Search Handler
+  ipcMain.handle('search-sounds', async (_event, { query, page = 1 }) => {
     try {
-      // Attempt to fetch more results by adding a limit param if supported, or just verify endpoint
-      // NOTE: Unofficial API might ignore 'limit' or 'page' parameters.
-      const response = await fetch(`https://www.myinstants.com/api/v1/instants/?format=json&name=${encodeURIComponent(query)}`);
+      const response = await fetch(`https://www.myinstants.com/api/v1/instants/?format=json&name=${encodeURIComponent(query)}&page=${page}`);
       if (!response.ok) throw new Error('API request failed');
 
       const data = await response.json();
-      return data.results.map((item: any) => ({
+
+      const results = data.results.map((item: any) => ({
         id: item.id?.toString() || Math.random().toString(),
         name: item.name,
         url: item.sound,
@@ -141,9 +141,16 @@ app.whenReady().then(() => {
         description: item.description
       }));
 
+      return {
+        results,
+        count: data.count,
+        next: data.next
+      };
+
     } catch (err) {
       console.error('Search failed:', err);
-      return [];
+      // Return empty structure on error to avoid breaking frontend destructuring if expected
+      return { results: [], count: 0, next: null };
     }
   });
 
@@ -218,5 +225,41 @@ app.whenReady().then(() => {
 
   ipcMain.handle('get-app-version', () => {
     return app.getVersion();
+  });
+
+  ipcMain.handle('export-sound', async (_event, { name, path: soundPath }) => {
+    try {
+      const { filePath } = await dialog.showSaveDialog(win!, {
+        title: `Save ${name}`,
+        defaultPath: `${name}.mp3`,
+        filters: [
+          { name: 'Audio Files', extensions: ['mp3', 'wav', 'ogg'] }
+        ]
+      });
+
+      if (!filePath) return false;
+
+      // Handle different path types
+      let sourcePath = soundPath;
+      if (sourcePath.startsWith('media://')) {
+        sourcePath = sourcePath.replace('media://', '');
+        sourcePath = decodeURI(sourcePath);
+      } else if (sourcePath.startsWith('http')) {
+        // Download if remote
+        const response = await fetch(sourcePath);
+        if (!response.ok) throw new Error('Download failed');
+        const buffer = await response.arrayBuffer();
+        await fs.promises.writeFile(filePath, Buffer.from(buffer));
+        return true;
+      }
+
+      // Copy local file
+      await fs.promises.copyFile(sourcePath, filePath);
+      return true;
+
+    } catch (err) {
+      console.error('Export failed:', err);
+      return false;
+    }
   });
 })
