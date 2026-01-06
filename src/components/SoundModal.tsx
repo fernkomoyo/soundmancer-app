@@ -440,34 +440,34 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                                         </div>
 
                                         {isEmojiPickerOpen && (
-                                            <div className="absolute top-full right-0 mt-2 w-64 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-3 z-50 grid grid-cols-6 gap-2 animate-in fade-in zoom-in duration-200">
-                                                {['🔊', '📢', '🔥', '💀', '🤡', '😭',
-                                                    '😂', '😱', '🤬', '🤯', '🤢', '🤮',
-                                                    '🎺', '🥁', '🎸', '🎹', '🎼', '🎤',
-                                                    '🚨', '💥', '💣', '💨', '🛑', '🚫',
-                                                    '🐶', '🐱', '🐓', '🦗', '🐐', '🐒',
-                                                    '💯', '🆙', '🆒', '✅', '❌', '✨'
-                                                ].map(emoji => (
-                                                    <button
-                                                        key={emoji}
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setIcon(emoji);
-                                                            setIsEmojiPickerOpen(false);
-                                                        }}
-                                                        className="h-8 w-8 flex items-center justify-center rounded hover:bg-white/10 text-lg transition-colors"
-                                                    >
-                                                        {emoji}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                        {/* Click outside listener could be added here or just rely on manual toggle */}
-                                        {isEmojiPickerOpen && (
-                                            <div
-                                                className="fixed inset-0 z-40"
+                                            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm"
                                                 onClick={() => setIsEmojiPickerOpen(false)}
-                                            />
+                                            >
+                                                <div
+                                                    className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-4 grid grid-cols-6 gap-2 w-full max-w-sm animate-in zoom-in-95 duration-200"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    {['🔊', '📢', '🔥', '💀', '🤡', '😭',
+                                                        '😂', '😱', '🤬', '🤯', '🤢', '🤮',
+                                                        '🎺', '🥁', '🎸', '🎹', '🎼', '🎤',
+                                                        '🚨', '💥', '💣', '💨', '🛑', '🚫',
+                                                        '🐶', '🐱', '🐓', '🦗', '🐐', '🐒',
+                                                        '💯', '🆙', '🆒', '✅', '❌', '✨'
+                                                    ].map(emoji => (
+                                                        <button
+                                                            key={emoji}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setIcon(emoji);
+                                                                setIsEmojiPickerOpen(false);
+                                                            }}
+                                                            className="aspect-square flex items-center justify-center rounded-lg hover:bg-white/10 text-2xl transition-all hover:scale-110 active:scale-95"
+                                                        >
+                                                            {emoji}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         )}
                                     </div>
                                 </div>

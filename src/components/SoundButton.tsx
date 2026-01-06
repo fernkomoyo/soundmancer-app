@@ -181,18 +181,21 @@ export const SoundButton: React.FC<SoundButtonProps> = ({
                 onDragStart={handleDragStart}
                 onClick={playSound}
                 onContextMenu={stopSound}
+                title={sound.name}
                 className={`
-                    relative group flex flex-row items-center gap-2 p-2 
-                    rounded-lg cursor-pointer transition-all duration-200 border border-white/10
+                    relative group flex flex-col items-center justify-center p-2 
+                    rounded-xl cursor-pointer transition-all duration-200 border border-white/10 aspect-square
                     ${isPlaying ? 'bg-green-500/30 border-green-500/50' : 'hover:bg-white/10 bg-black/40'}
                 `}
             >
-                <div className="text-xl pointer-events-none">{sound.icon && sound.icon.match(/^(https?:\/\/|data:|media:\/\/)/) ? '🔊' : (sound.icon || '🔊')}</div>
-                <div className="text-xs font-bold text-white truncate flex-1 text-left">{sound.name}</div>
+                <div className="text-3xl pointer-events-none drop-shadow-md transform group-hover:scale-110 transition-transform">
+                    {sound.icon && sound.icon.match(/^(https?:\/\/|data:|media:\/\/)/) ? '🔊' : (sound.icon || '🔊')}
+                </div>
+
                 {onToggleFavorite && (
                     <button
                         onClick={(e) => { e.stopPropagation(); onToggleFavorite(sound.id); }}
-                        className={`text-xs hover:scale-110 transition-transform ${sound.isFavorite ? 'text-red-500' : 'text-gray-600 hover:text-gray-400'}`}
+                        className={`absolute top-1 right-1 text-[10px] hover:scale-110 transition-transform ${sound.isFavorite ? 'text-red-500' : 'text-gray-600 hover:text-gray-400 opacity-0 group-hover:opacity-100'}`}
                     >
                         {sound.isFavorite ? '❤️' : '🤍'}
                     </button>
