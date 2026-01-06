@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Sound } from '../types';
+import { useAudioVisualizer } from '../contexts/AudioContext';
 
 interface SoundButtonProps {
     sound: Sound;
@@ -158,6 +159,20 @@ export const SoundButton: React.FC<SoundButtonProps> = ({
             broadcastAudioRef.current.currentTime = 0;
         }
     };
+
+
+    // Connect to Visualizer when audio is available
+    const { connectToVisualizer } = useAudioVisualizer();
+
+    useEffect(() => {
+        // Only connect to visualizer if it's a local file (blob or media protocol)
+        // External URLs (http/https) without CORS will be muted by Web Audio API, so we skip them.
+        const isExternal = sound.path.startsWith('http://') || sound.path.startsWith('https://');
+
+        if (monitorAudioRef.current && !isExternal) {
+            connectToVisualizer(monitorAudioRef.current);
+        }
+    }, [sound.path, connectToVisualizer]);
 
     if (isCompact) {
         return (

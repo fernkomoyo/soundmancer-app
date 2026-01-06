@@ -30,8 +30,15 @@ export const SoundModal: React.FC<SoundModalProps> = ({
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 
-    const [activeTab, setActiveTab] = useState<'local' | 'online'>('local');
+    const [activeTab, setActiveTab] = useState<'local' | 'online' | 'youtube'>('local');
     const [showTrimmer, setShowTrimmer] = useState(false);
+
+    // YouTube Clipper State
+    const [youtubeUrl, setYoutubeUrl] = useState('');
+    const [youtubeId, setYoutubeId] = useState('');
+    const [clipStart, setClipStart] = useState(0);
+    const [clipEnd, setClipEnd] = useState(10);
+    const [isDownloading, setIsDownloading] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -101,6 +108,40 @@ export const SoundModal: React.FC<SoundModalProps> = ({
         }
     };
 
+    const handleYoutubeImport = async () => {
+        if (!youtubeId) return;
+        setIsDownloading(true);
+        try {
+            // Use canonical URL to avoid issues with malformed input
+            const canonicalUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
+            // @ts-ignore
+            const path = await window.ipcRenderer.invoke('download-youtube-audio', {
+                url: canonicalUrl,
+                start: clipStart,
+                end: clipEnd
+            });
+
+            // Fetch via IPC to bypass protocol/fetch issues
+            // @ts-ignore
+            const buffer = await window.ipcRenderer.invoke('read-file', path);
+            const blob = new Blob([buffer], { type: 'audio/mpeg' });
+            const file = new File([blob], `yt_clip_${youtubeId}.mp3`, { type: 'audio/mpeg' });
+            setFile(file);
+            // Switch to Trimmer
+            setShowTrimmer(true);
+
+            // Auto fill details
+            if (!name) setName(`YouTube Clip`);
+        } catch (err: any) {
+            console.error("YouTube import error", err);
+            // Show actual error message if available
+            const errorMessage = err.message || "Failed to download YouTube video.";
+            if (onShowToast) onShowToast(`Error: ${errorMessage}`, 'error');
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
     if (!isOpen) return null;
 
     const handleFileSelect = (selectedFile: File) => {
@@ -166,7 +207,13 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                             onClick={() => setActiveTab('online')}
                             className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'online' ? 'text-purple-400 border-b-2 border-purple-400 bg-white/5' : 'text-gray-400 hover:text-white'}`}
                         >
-                            Discover (Online)
+                            Discover
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('youtube')}
+                            className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'youtube' ? 'text-red-400 border-b-2 border-red-400 bg-white/5' : 'text-gray-400 hover:text-white'}`}
+                        >
+                            YouTube
                         </button>
                     </div>
                 )}
@@ -179,6 +226,7 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                             onConfirm={(trimmedFile) => {
                                 setFile(trimmedFile);
                                 setShowTrimmer(false);
+                                setActiveTab('local');
                             }}
                             onCancel={() => setShowTrimmer(false)}
                         />
@@ -186,6 +234,88 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                 ) : activeTab === 'online' ? (
                     <div className="p-4 flex-1 overflow-hidden min-h-[400px] flex flex-col">
                         <OnlineSoundSearch onDownload={handleOnlineSoundSelect} />
+                    </div>
+                ) : activeTab === 'youtube' ? (
+                    <div className="p-4 flex-1 overflow-hidden min-h-[400px] flex flex-col gap-4">
+                        {/* URL Input */}
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                placeholder="Paste YouTube URL..."
+                                className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-red-500 focus:outline-none"
+                                onChange={(e) => {
+                                    const text = e.target.value;
+                                    setYoutubeUrl(text);
+                                    const match = text.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/);
+                                    if (match && match[1]) setYoutubeId(match[1]);
+                                    else setYoutubeId('');
+                                }}
+                                value={youtubeUrl}
+                            />
+                        </div>
+
+                        {/* Embed Player */}
+                        {youtubeId ? (
+                            <div className="relative aspect-video bg-black rounded-lg overflow-hidden border border-gray-800 shadow-lg">
+                                <iframe
+                                    width="100%"
+                                    height="100%"
+                                    src={`https://www.youtube.com/embed/${youtubeId}`}
+                                    title="YouTube video player"
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                ></iframe>
+                            </div>
+                        ) : (
+                            <div className="flex-1 bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-800 flex items-center justify-center flex-col gap-2 text-gray-500">
+                                <span className="text-4xl text-red-500/20">▶</span>
+                                <span className="text-sm">Paste a link to preview</span>
+                            </div>
+                        )}
+
+                        {/* Clipping Controls */}
+                        <div className="grid grid-cols-2 gap-3 p-3 bg-gray-900/50 rounded-xl border border-white/5">
+                            <div className="flex flex-col gap-1">
+                                <label className="text-[10px] uppercase font-bold text-gray-400">Start Time (s)</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.1"
+                                    value={clipStart}
+                                    onChange={(e) => setClipStart(parseFloat(e.target.value) || 0)}
+                                    className="bg-black/30 border border-gray-700 rounded px-2 py-1 text-white text-sm"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <label className="text-[10px] uppercase font-bold text-gray-400">End Time (s)</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.1"
+                                    value={clipEnd}
+                                    onChange={(e) => setClipEnd(parseFloat(e.target.value) || 0)}
+                                    className="bg-black/30 border border-gray-700 rounded px-2 py-1 text-white text-sm"
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleYoutubeImport}
+                            disabled={!youtubeId || isDownloading}
+                            className={`
+                                w-full py-3 rounded-xl font-bold text-white shadow-lg transition-all flex items-center justify-center gap-2
+                                ${youtubeId && !isDownloading
+                                    ? 'bg-red-600 hover:bg-red-500 hover:shadow-red-500/20 hover:scale-[1.02]'
+                                    : 'bg-gray-800 text-gray-500 cursor-not-allowed'}
+                            `}
+                        >
+                            {isDownloading ? (
+                                <><span>⏳</span> Downloading Audio...</>
+                            ) : (
+                                <><span>✂️</span> Clip & Import Sound</>
+                            )}
+                        </button>
                     </div>
                 ) : (
                     <>

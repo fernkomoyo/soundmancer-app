@@ -4,16 +4,18 @@ import { fileToAudioBuffer, sliceAudioBuffer, bufferToWav } from '../utils/audio
 interface AudioTrimmerProps {
     file: File;
     maxDuration: number; // in seconds
+    initialStart?: number;
+    initialEnd?: number;
     onConfirm: (trimmedFile: File) => void;
     onCancel: () => void;
 }
 
-export const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ file, maxDuration, onConfirm, onCancel }) => {
+export const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ file, maxDuration, initialStart = 0, initialEnd, onConfirm, onCancel }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const audioBufferRef = useRef<AudioBuffer | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [start, setStart] = useState(0);
-    const [end, setEnd] = useState(maxDuration);
+    const [start, setStart] = useState(initialStart);
+    const [end, setEnd] = useState(initialEnd || maxDuration);
     const [isPlaying, setIsPlaying] = useState(false);
     const playbackSource = useRef<AudioBufferSourceNode | null>(null);
     const audioContext = useRef<AudioContext | null>(null);
@@ -24,8 +26,18 @@ export const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ file, maxDuration, o
             try {
                 const buffer = await fileToAudioBuffer(file);
                 audioBufferRef.current = buffer;
-                // Default end: min(bufferDuration, maxDuration)
-                setEnd(Math.min(buffer.duration, maxDuration));
+
+                // Set initial handles
+                // If specific initialEnd provided, use it. Else default to buffer duration or max handling.
+                if (initialEnd) {
+                    setEnd(initialEnd);
+                } else {
+                    setEnd(Math.min(buffer.duration, start + maxDuration));
+                }
+
+                // Ensure start is valid
+                if (initialStart) setStart(initialStart);
+
                 setIsLoading(false);
             } catch (err) {
                 console.error("Error decoding audio", err);
@@ -39,7 +51,7 @@ export const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ file, maxDuration, o
         return () => {
             audioContext.current?.close();
         };
-    }, [file, maxDuration]);
+    }, [file, maxDuration, initialStart, initialEnd]);
 
     // Draw Waveform
     useEffect(() => {

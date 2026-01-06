@@ -6,6 +6,8 @@ import { SoundGrid } from './components/SoundGrid';
 import { SoundModal } from './components/SoundModal';
 import { SettingsModal } from './components/SettingsModal';
 import { ConfirmModal } from './components/ConfirmModal';
+import { AudioProvider } from './contexts/AudioContext';
+import { AudioVisualizer } from './components/AudioVisualizer';
 import { Sound } from './types';
 
 function App() {
@@ -333,209 +335,216 @@ function App() {
   };
 
   return (
-    <div className={`flex flex-col h-screen bg-transparent text-white overflow-hidden transition-all duration-300 ${isMiniMode ? 'rounded-3xl' : ''}`}>
-      {/* Header */}
-      {!isMiniMode && (
-        <header className="flex flex-col gap-5 p-6 glass-header relative z-20 drag">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="text-4xl font-black tracking-tighter flex items-center gap-3 italic relative group">
-                <img src={logoHeader} alt="Logo" className="w-12 h-12 rounded-xl shadow-lg border border-white/10 group-hover:scale-110 transition-transform duration-500" />
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 glow-text animate-pulse-slow pr-2">
-                  SoundMancer
-                </span>
-              </h1>
+    <AudioProvider>
+      <div className={`flex flex-col h-screen bg-transparent text-white overflow-hidden transition-all duration-300 ${isMiniMode ? 'rounded-3xl' : ''}`}>
+        {/* Header */}
+        {!isMiniMode && (
+          <header className="flex flex-col gap-5 p-6 glass-header relative z-20 drag">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <h1 className="text-4xl font-black tracking-tighter flex items-center gap-3 italic relative group">
+                  <img src={logoHeader} alt="Logo" className="w-12 h-12 rounded-xl shadow-lg border border-white/10 group-hover:scale-110 transition-transform duration-500" />
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 glow-text animate-pulse-slow pr-2">
+                    SoundMancer
+                  </span>
+                </h1>
+                <button
+                  onClick={toggleMiniMode}
+                  className="no-drag text-[10px] font-bold tracking-wider uppercase bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-full transition-all hover:scale-105 active:scale-95 relative z-50 cursor-pointer backdrop-blur-md"
+                  style={{ WebkitAppRegion: 'no-drag' } as any}
+                >
+                  Mini Mode
+                </button>
+              </div>
+
               <button
-                onClick={toggleMiniMode}
-                className="no-drag text-[10px] font-bold tracking-wider uppercase bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-full transition-all hover:scale-105 active:scale-95 relative z-50 cursor-pointer backdrop-blur-md"
-                style={{ WebkitAppRegion: 'no-drag' } as any}
+                onClick={() => {
+                  console.log("Settings button clicked");
+                  setIsSettingsOpen(true);
+                }}
+                className="p-3 rounded-full hover:bg-white/10 transition-all hover:scale-110 active:scale-90 group no-drag relative z-50 cursor-pointer"
+                title="Settings"
               >
-                Mini Mode
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 group-hover:text-blue-400 group-hover:rotate-90 transition-all duration-500 pointer-events-none drop-shadow-md">
+                  <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
               </button>
             </div>
 
-            <button
-              onClick={() => {
-                console.log("Settings button clicked");
-                setIsSettingsOpen(true);
-              }}
-              className="p-3 rounded-full hover:bg-white/10 transition-all hover:scale-110 active:scale-90 group no-drag relative z-50 cursor-pointer"
-              title="Settings"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 group-hover:text-blue-400 group-hover:rotate-90 transition-all duration-500 pointer-events-none drop-shadow-md">
-                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-            </button>
-          </div>
-
-          {/* Search and Stop All Bar */}
-          <div className="flex items-center gap-3 no-drag">
-            <div className="relative flex-1 group">
-              <input
-                type="text"
-                placeholder="Search sounds..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-black/20 border border-white/10 hover:border-white/20 focus:border-blue-400/50 rounded-xl py-2 pl-10 pr-10 text-sm transition-all outline-none text-white"
-              />
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-2.5 text-gray-500 group-focus-within:text-blue-400 transition-colors pointer-events-none">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-2.5 text-gray-500 hover:text-white transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              )}
+            {/* Audio Visualizer */}
+            <div className="w-full px-6 mb-2 no-drag">
+              <AudioVisualizer height={60} />
             </div>
 
-            <button
-              onClick={() => window.dispatchEvent(new Event('stop-all-sounds'))}
-              className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/50 text-red-400 px-4 py-2 rounded-xl text-sm font-bold tracking-wide transition-all active:scale-95 flex items-center gap-2 group"
-            >
-              <span className="w-2 h-2 bg-red-400 rounded-xs group-hover:scale-125 transition-transform" />
-              STOP ALL
-            </button>
-          </div>
+            {/* Search and Stop All Bar */}
+            <div className="flex items-center gap-3 no-drag">
+              <div className="relative flex-1 group">
+                <input
+                  type="text"
+                  placeholder="Search sounds..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-black/20 border border-white/10 hover:border-white/20 focus:border-blue-400/50 rounded-xl py-2 pl-10 pr-10 text-sm transition-all outline-none text-white"
+                />
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-2.5 text-gray-500 group-focus-within:text-blue-400 transition-colors pointer-events-none">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-2.5 text-gray-500 hover:text-white transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                )}
+              </div>
 
-          {/* Category Tabs */}
-          <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide no-drag items-center">
-            {categories.map(cat => (
               <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, cat)}
-                className={`
+                onClick={() => window.dispatchEvent(new Event('stop-all-sounds'))}
+                className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/50 text-red-400 px-4 py-2 rounded-xl text-sm font-bold tracking-wide transition-all active:scale-95 flex items-center gap-2 group"
+              >
+                <span className="w-2 h-2 bg-red-400 rounded-xs group-hover:scale-125 transition-transform" />
+                STOP ALL
+              </button>
+            </div>
+
+            {/* Category Tabs */}
+            <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide no-drag items-center">
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, cat)}
+                  className={`
                         px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ease-out relative overflow-hidden group
                         ${selectedCategory === cat
-                    ? 'bg-blue-500/20 text-blue-200 border border-blue-400/30 shadow-[0_0_20px_rgba(59,130,246,0.3)]'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10'}
+                      ? 'bg-blue-500/20 text-blue-200 border border-blue-400/30 shadow-[0_0_20px_rgba(59,130,246,0.3)]'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10'}
                     `}
-              >
-                <span className="relative z-10">{cat}</span>
-                {selectedCategory === cat && (
-                  <div className="absolute inset-0 bg-blue-400/10 blur-md pointer-events-none" />
-                )}
-              </button>
-            ))}
+                >
+                  <span className="relative z-10">{cat}</span>
+                  {selectedCategory === cat && (
+                    <div className="absolute inset-0 bg-blue-400/10 blur-md pointer-events-none" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </header>
+        )}
+
+        {isMiniMode && (
+          <div className="drag h-8 bg-black/60 backdrop-blur-md flex items-center justify-between px-3 cursor-move z-50 border-b border-white/5">
+            <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500">Mini</span>
+            <button
+              onClick={toggleMiniMode}
+              className="no-drag text-[10px] text-blue-400 hover:text-white transition-colors"
+              style={{ WebkitAppRegion: 'no-drag' } as any}
+            >
+              EXPAND
+            </button>
           </div>
-        </header>
-      )}
+        )}
 
-      {isMiniMode && (
-        <div className="drag h-8 bg-black/60 backdrop-blur-md flex items-center justify-between px-3 cursor-move z-50 border-b border-white/5">
-          <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500">Mini</span>
-          <button
-            onClick={toggleMiniMode}
-            className="no-drag text-[10px] text-blue-400 hover:text-white transition-colors"
-            style={{ WebkitAppRegion: 'no-drag' } as any}
-          >
-            EXPAND
-          </button>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-4 scroll-smooth">
-        <SoundGrid
-          sounds={filteredSounds}
-          outputDeviceId={selectedOutputId}
-          monitorVolume={monitorVolume}
-          broadcastVolume={broadcastVolume}
-          onAddSound={handleAddSoundClick}
-          onDelete={handleDeleteSound}
-          onEdit={handleEditSound}
-          onToggleFavorite={toggleFavorite}
-          onExport={async (sound) => {
-            if ((window as any).ipcRenderer) {
-              const success = await (window as any).ipcRenderer.invoke('export-sound', sound);
-              if (success) {
-                setToast({ message: 'Sound exported successfully!', type: 'success' });
-              } else {
-                // Do nothing or show error if needed, but main process usually logs error
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto p-4 scroll-smooth">
+          <SoundGrid
+            sounds={filteredSounds}
+            outputDeviceId={selectedOutputId}
+            monitorVolume={monitorVolume}
+            broadcastVolume={broadcastVolume}
+            onAddSound={handleAddSoundClick}
+            onDelete={handleDeleteSound}
+            onEdit={handleEditSound}
+            onToggleFavorite={toggleFavorite}
+            onExport={async (sound) => {
+              if ((window as any).ipcRenderer) {
+                const success = await (window as any).ipcRenderer.invoke('export-sound', sound);
+                if (success) {
+                  setToast({ message: 'Sound exported successfully!', type: 'success' });
+                } else {
+                  // Do nothing or show error if needed, but main process usually logs error
+                }
               }
-            }
-          }}
-          isCompact={isMiniMode}
-        />
-      </main>
+            }}
+            isCompact={isMiniMode}
+          />
+        </main>
 
-      {/* Toast Notification */}
-      {toast && (
-        <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl shadow-2xl z-[100] animate-in slide-in-from-bottom-5 fade-in duration-300 border backdrop-blur-md
+        {/* Toast Notification */}
+        {toast && (
+          <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl shadow-2xl z-[100] animate-in slide-in-from-bottom-5 fade-in duration-300 border backdrop-blur-md
           ${toast.type === 'action' ? 'bg-blue-600/90 border-blue-400 text-white cursor-pointer hover:scale-105 active:scale-95 transition-transform' : 'bg-gray-900/90 border-gray-700 text-white'}
         `}
-          onClick={toast.action}
-        >
-          <div className="flex items-center gap-3">
-            <span className="text-xl">
-              {toast.type === 'info' && '⬇️'}
-              {toast.type === 'success' && '✅'}
-              {toast.type === 'error' && '❌'}
-              {toast.type === 'action' && '🚀'}
-            </span>
-            <span className="font-medium">{toast.message}</span>
+            onClick={toast.action}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">
+                {toast.type === 'info' && '⬇️'}
+                {toast.type === 'success' && '✅'}
+                {toast.type === 'error' && '❌'}
+                {toast.type === 'action' && '🚀'}
+              </span>
+              <span className="font-medium">{toast.message}</span>
+            </div>
           </div>
+        )}
+
+        {/* Add Sound Modal */}
+        <SoundModal
+          isOpen={isModalOpen}
+          onClose={() => { setIsModalOpen(false); setEditingSound(null); }}
+          onSave={async (soundData) => {
+            if (editingSound) {
+              // Edit logic checked previously, handleSaveSound handles updates if ID matches
+              handleSaveSound(soundData);
+            } else {
+              handleSaveSound(soundData);
+            }
+          }}
+          categories={categories}
+          initialSound={editingSound}
+          onShowToast={(message, type) => setToast({ message, type })}
+        />
+
+        <div className="fixed bottom-2 right-2 text-[10px] text-gray-500 font-mono opacity-50 pointer-events-none select-none">
+          v{appVersion}
         </div>
-      )}
 
-      {/* Add Sound Modal */}
-      <SoundModal
-        isOpen={isModalOpen}
-        onClose={() => { setIsModalOpen(false); setEditingSound(null); }}
-        onSave={async (soundData) => {
-          if (editingSound) {
-            // Edit logic checked previously, handleSaveSound handles updates if ID matches
-            handleSaveSound(soundData);
-          } else {
-            handleSaveSound(soundData);
-          }
-        }}
-        categories={categories}
-        initialSound={editingSound}
-        onShowToast={(message, type) => setToast({ message, type })}
-      />
+        <SettingsModal
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+          inputs={inputs}
+          outputs={outputs}
+          selectedInputId={selectedInputId}
+          setSelectedInputId={setSelectedInputId}
+          selectedOutputId={selectedOutputId}
+          setSelectedOutputId={setSelectedOutputId}
+          isPassthroughEnabled={isPassthroughEnabled}
+          setIsPassthroughEnabled={setIsPassthroughEnabled}
+          monitorVolume={monitorVolume}
+          setMonitorVolume={setMonitorVolume}
+          broadcastVolume={broadcastVolume}
+          setBroadcastVolume={setBroadcastVolume}
+          refreshDevices={refreshDevices}
+        />
 
-      <div className="fixed bottom-2 right-2 text-[10px] text-gray-500 font-mono opacity-50 pointer-events-none select-none">
-        v{appVersion}
+        <ConfirmModal
+          isOpen={!!soundToDelete}
+          onClose={() => setSoundToDelete(null)}
+          onConfirm={confirmDelete}
+          title="Delete Sound"
+          message="Are you sure you want to delete this sound? This action cannot be undone."
+          confirmText="Delete"
+          isDestructive={true}
+        />
       </div>
-
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        inputs={inputs}
-        outputs={outputs}
-        selectedInputId={selectedInputId}
-        setSelectedInputId={setSelectedInputId}
-        selectedOutputId={selectedOutputId}
-        setSelectedOutputId={setSelectedOutputId}
-        isPassthroughEnabled={isPassthroughEnabled}
-        setIsPassthroughEnabled={setIsPassthroughEnabled}
-        monitorVolume={monitorVolume}
-        setMonitorVolume={setMonitorVolume}
-        broadcastVolume={broadcastVolume}
-        setBroadcastVolume={setBroadcastVolume}
-        refreshDevices={refreshDevices}
-      />
-
-      <ConfirmModal
-        isOpen={!!soundToDelete}
-        onClose={() => setSoundToDelete(null)}
-        onConfirm={confirmDelete}
-        title="Delete Sound"
-        message="Are you sure you want to delete this sound? This action cannot be undone."
-        confirmText="Delete"
-        isDestructive={true}
-      />
-    </div>
+    </AudioProvider>
   );
 }
 

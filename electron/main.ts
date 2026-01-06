@@ -3,10 +3,10 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs'
 import { autoUpdater } from 'electron-updater'
+import YTDlpWrap from 'yt-dlp-wrap'
 
-// ... (imports remain mostly same, just added dialog and autoUpdater)
-
-// const require = createRequire(import.meta.url) // Used implicitly for some node modules if needed
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // ... (constants remain same)
@@ -102,6 +102,17 @@ app.whenReady().then(() => {
   // IPC Handlers for Sound Persistence
   const soundsFile = path.join(app.getPath('userData'), 'sounds.json')
 
+  // Helper helper to read arbitrary files (for YT import)
+  ipcMain.handle('read-file', async (_event, filePath) => {
+    try {
+      const buffer = await fs.promises.readFile(filePath);
+      return buffer;
+    } catch (err) {
+      console.error("Failed to read file", err);
+      throw err;
+    }
+  });
+
   ipcMain.handle('load-sounds', async () => {
     try {
       if (!fs.existsSync(soundsFile)) return []
@@ -123,7 +134,6 @@ app.whenReady().then(() => {
     }
   })
 
-  // Online Search Handler
   // Online Search Handler
   ipcMain.handle('search-sounds', async (_event, { query, page = 1 }) => {
     try {
@@ -187,6 +197,102 @@ app.whenReady().then(() => {
       return filePath;
     } catch (err) {
       console.error('Download failed:', err);
+      throw err;
+    }
+  });
+
+  // YouTube Downloader (yt-dlp - Nuclear Option)
+  const ytDlpPath = path.join(app.getPath('userData'), 'yt-dlp.exe');
+  const ytDlpWrap = new YTDlpWrap(ytDlpPath);
+
+  const ensureBinaries = async () => {
+    const binDir = path.join(app.getPath('userData'), 'bin');
+    if (!fs.existsSync(binDir)) await fs.promises.mkdir(binDir, { recursive: true });
+
+    const ffmpegSrc = require('ffmpeg-static');
+    const ffprobeSrc = require('ffprobe-static').path;
+
+    const ffmpegDest = path.join(binDir, 'ffmpeg.exe');
+    const ffprobeDest = path.join(binDir, 'ffprobe.exe');
+
+    if (!fs.existsSync(ffmpegDest)) await fs.promises.copyFile(ffmpegSrc, ffmpegDest);
+    if (!fs.existsSync(ffprobeDest)) await fs.promises.copyFile(ffprobeSrc, ffprobeDest);
+
+    return binDir;
+  };
+
+  const ensureYtDlpBinary = async () => {
+    if (!fs.existsSync(ytDlpPath)) {
+      console.log("Downloading yt-dlp binary to", ytDlpPath);
+      await YTDlpWrap.downloadFromGithub(ytDlpPath);
+      console.log("yt-dlp binary downloaded!");
+    }
+  };
+
+  ipcMain.handle('download-youtube-audio', async (_event, { url, start, end }) => {
+    try {
+      if (!url) throw new Error('No URL provided');
+
+      await ensureYtDlpBinary();
+      const binDir = await ensureBinaries();
+
+      const tempDir = app.getPath('temp');
+      const fileName = `yt_clip_${Date.now()}.mp3`;
+      const filePath = path.join(tempDir, fileName);
+
+      console.log("Executing yt-dlp for:", url, "Range:", start, "-", end);
+
+      const args = [
+        url,
+        '-v',
+        '--force-ipv4',
+        '-f', 'bestaudio/best',
+        '-x',
+        '--audio-format', 'mp3',
+        '--ffmpeg-location', binDir,
+        '-o', filePath
+      ];
+
+      // Add partial download args if start/end provided
+      if (start !== undefined && end !== undefined) {
+        // yt-dlp format: *START-END (e.g. *10-20)
+        args.push('--download-sections', `*${start}-${end}`);
+        args.push('--force-keyframes-at-cuts');
+      }
+
+      console.log("Starting yt-dlp with args:", JSON.stringify(args));
+
+      return new Promise((resolve, reject) => {
+        const readableStream = ytDlpWrap.exec(args);
+
+        readableStream.on('progress', (progress: any) => {
+          console.log(`yt-dlp progress: ${progress.percent}%`);
+        });
+
+        readableStream.on('ytDlpEvent', (eventType: string, eventData: string) => {
+          console.log(`[yt-dlp] ${eventType}: ${eventData}`);
+        });
+
+        readableStream.on('error', (error: Error) => {
+          console.error('yt-dlp error:', error);
+          reject(error);
+        });
+
+        readableStream.on('close', () => {
+          console.log("yt-dlp process closed");
+          resolve(filePath);
+        });
+
+        // readableStream.stdout is not exposed in types
+        // readableStream.stdout.on('data', (data: any) => console.log(`[yt-dlp stdout] ${data.toString()}`));
+        // readableStream.stderr.on('data', (data: any) => console.error(`[yt-dlp stderr] ${data.toString()}`));
+      });
+
+    } catch (err: any) {
+      console.error('YouTube download failed:', err);
+      const logPath = path.join(process.env.APP_ROOT, 'error_log.txt');
+      const logMessage = `[${new Date().toISOString()}] Error: ${err.message}\nStack: ${err.stack}\n\n`;
+      fs.appendFileSync(logPath, logMessage);
       throw err;
     }
   });

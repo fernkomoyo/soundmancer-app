@@ -1,0 +1,127 @@
+[2026-01-05T22:52:00.914Z] Error: Invalid YouTube URL
+Stack: Error: Invalid YouTube URL
+    at file:///C:/dev/soundboard/dist-electron/main.js:43857:41
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:82957)
+    at WebContents.emit (node:events:519:28)
+
+[2026-01-05T22:52:11.609Z] Error: Invalid YouTube URL
+Stack: Error: Invalid YouTube URL
+    at file:///C:/dev/soundboard/dist-electron/main.js:43857:41
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:82957)
+    at WebContents.emit (node:events:519:28)
+
+[2026-01-05T22:54:09.385Z] Error: Invalid YouTube URL
+Stack: Error: Invalid YouTube URL
+    at file:///C:/dev/soundboard/dist-electron/main.js:43857:41
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:82957)
+    at WebContents.emit (node:events:519:28)
+
+[2026-01-05T23:04:50.544Z] Error: Invalid YouTube URL
+Stack: Error: Invalid YouTube URL
+    at file:///C:/dev/soundboard/dist-electron/main.js:43857:41
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:82957)
+    at WebContents.emit (node:events:519:28)
+
+[2026-01-05T23:04:54.292Z] Error: Invalid YouTube URL
+Stack: Error: Invalid YouTube URL
+    at file:///C:/dev/soundboard/dist-electron/main.js:43857:41
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:82957)
+    at WebContents.emit (node:events:519:28)
+
+[2026-01-05T23:08:17.987Z] Error: Could not extract functions
+Stack: Error: Could not extract functions
+    at file:///C:/dev/soundboard/dist-electron/main.js:15792:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+[2026-01-05T23:09:05.712Z] Error: Could not extract functions
+Stack: Error: Could not extract functions
+    at file:///C:/dev/soundboard/dist-electron/main.js:15792:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+[2026-01-05T23:09:47.441Z] Error: Could not extract functions
+Stack: Error: Could not extract functions
+    at file:///C:/dev/soundboard/dist-electron/main.js:15792:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+[2026-01-05T23:16:13.433Z] Error: ytdl is not defined
+Stack: ReferenceError: ytdl is not defined
+    at file:///C:/dev/soundboard/dist-electron/main.js:13969:7
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:82957)
+    at WebContents.emit (node:events:519:28)
+
+[2026-01-05T23:21:36.543Z] Error: ytdl is not defined
+Stack: ReferenceError: ytdl is not defined
+    at file:///C:/dev/soundboard/dist-electron/main.js:13969:7
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:82957)
+    at WebContents.emit (node:events:519:28)
+
+[2026-01-05T23:27:47.156Z] Error: 
+Error code: Error: Command failed: C:\Users\Fernando\AppData\Roaming\soundboard-app\yt-dlp.exe https://www.youtube.com/watch?v=3JYvtP9F2k0https://www.youtube.com/watch?v=3JYvtP9F2k0 -x --audio-format mp3 -o C:\Users\Fernando\AppData\Local\Temp\yt_clip_1767655661717.mp3
+WARNING: [youtube] No supported JavaScript runtime could be found. Only deno is enabled by default; to use another runtime add  --js-runtimes RUNTIME[:PATH]  to your command/config. YouTube extraction without a JS runtime has been deprecated, and some formats may be missing. See  https://github.com/yt-dlp/yt-dlp/wiki/EJS  for details on installing one
+WARNING: [youtube] 3JYvtP9F2k0: Some web_safari client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: [youtube] 3JYvtP9F2k0: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+ERROR: Postprocessing: ffprobe and ffmpeg not found. Please install or provide the path using --ffmpeg-location
+
+
+Stderr:
+WARNING: [youtube] No supported JavaScript runtime could be found. Only deno is enabled by default; to use another runtime add  --js-runtimes RUNTIME[:PATH]  to your command/config. YouTube extraction without a JS runtime has been deprecated, and some formats may be missing. See  https://github.com/yt-dlp/yt-dlp/wiki/EJS  for details on installing one
+WARNING: [youtube] 3JYvtP9F2k0: Some web_safari client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: [youtube] 3JYvtP9F2k0: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+ERROR: Postprocessing: ffprobe and ffmpeg not found. Please install or provide the path using --ffmpeg-location
+
+Stack: Error: 
+Error code: Error: Command failed: C:\Users\Fernando\AppData\Roaming\soundboard-app\yt-dlp.exe https://www.youtube.com/watch?v=3JYvtP9F2k0https://www.youtube.com/watch?v=3JYvtP9F2k0 -x --audio-format mp3 -o C:\Users\Fernando\AppData\Local\Temp\yt_clip_1767655661717.mp3
+WARNING: [youtube] No supported JavaScript runtime could be found. Only deno is enabled by default; to use another runtime add  --js-runtimes RUNTIME[:PATH]  to your command/config. YouTube extraction without a JS runtime has been deprecated, and some formats may be missing. See  https://github.com/yt-dlp/yt-dlp/wiki/EJS  for details on installing one
+WARNING: [youtube] 3JYvtP9F2k0: Some web_safari client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: [youtube] 3JYvtP9F2k0: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+ERROR: Postprocessing: ffprobe and ffmpeg not found. Please install or provide the path using --ffmpeg-location
+
+
+Stderr:
+WARNING: [youtube] No supported JavaScript runtime could be found. Only deno is enabled by default; to use another runtime add  --js-runtimes RUNTIME[:PATH]  to your command/config. YouTube extraction without a JS runtime has been deprecated, and some formats may be missing. See  https://github.com/yt-dlp/yt-dlp/wiki/EJS  for details on installing one
+WARNING: [youtube] 3JYvtP9F2k0: Some web_safari client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: [youtube] 3JYvtP9F2k0: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+ERROR: Postprocessing: ffprobe and ffmpeg not found. Please install or provide the path using --ffmpeg-location
+
+    at YTDlpWrap2.createError (file:///C:/dev/soundboard/dist-electron/main.js:14278:14)
+    at file:///C:/dev/soundboard/dist-electron/main.js:14106:31
+    at ChildProcess.exithandler (node:child_process:430:5)
+    at ChildProcess.emit (node:events:519:28)
+    at maybeClose (node:internal/child_process:1105:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:305:5)
+
+[2026-01-05T23:29:40.220Z] Error: 
+Error code: Error: Command failed: C:\Users\Fernando\AppData\Roaming\soundboard-app\yt-dlp.exe https://www.youtube.com/watch?v=3JYvtP9F2k0https://www.youtube.com/watch?v=3JYvtP9F2k0 -x --audio-format mp3 -o C:\Users\Fernando\AppData\Local\Temp\yt_clip_1767655774429.mp3
+WARNING: [youtube] No supported JavaScript runtime could be found. Only deno is enabled by default; to use another runtime add  --js-runtimes RUNTIME[:PATH]  to your command/config. YouTube extraction without a JS runtime has been deprecated, and some formats may be missing. See  https://github.com/yt-dlp/yt-dlp/wiki/EJS  for details on installing one
+WARNING: [youtube] 3JYvtP9F2k0: Some web_safari client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: [youtube] 3JYvtP9F2k0: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+ERROR: Postprocessing: ffprobe and ffmpeg not found. Please install or provide the path using --ffmpeg-location
+
+
+Stderr:
+WARNING: [youtube] No supported JavaScript runtime could be found. Only deno is enabled by default; to use another runtime add  --js-runtimes RUNTIME[:PATH]  to your command/config. YouTube extraction without a JS runtime has been deprecated, and some formats may be missing. See  https://github.com/yt-dlp/yt-dlp/wiki/EJS  for details on installing one
+WARNING: [youtube] 3JYvtP9F2k0: Some web_safari client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: [youtube] 3JYvtP9F2k0: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+ERROR: Postprocessing: ffprobe and ffmpeg not found. Please install or provide the path using --ffmpeg-location
+
+Stack: Error: 
+Error code: Error: Command failed: C:\Users\Fernando\AppData\Roaming\soundboard-app\yt-dlp.exe https://www.youtube.com/watch?v=3JYvtP9F2k0https://www.youtube.com/watch?v=3JYvtP9F2k0 -x --audio-format mp3 -o C:\Users\Fernando\AppData\Local\Temp\yt_clip_1767655774429.mp3
+WARNING: [youtube] No supported JavaScript runtime could be found. Only deno is enabled by default; to use another runtime add  --js-runtimes RUNTIME[:PATH]  to your command/config. YouTube extraction without a JS runtime has been deprecated, and some formats may be missing. See  https://github.com/yt-dlp/yt-dlp/wiki/EJS  for details on installing one
+WARNING: [youtube] 3JYvtP9F2k0: Some web_safari client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: [youtube] 3JYvtP9F2k0: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+ERROR: Postprocessing: ffprobe and ffmpeg not found. Please install or provide the path using --ffmpeg-location
+
+
+Stderr:
+WARNING: [youtube] No supported JavaScript runtime could be found. Only deno is enabled by default; to use another runtime add  --js-runtimes RUNTIME[:PATH]  to your command/config. YouTube extraction without a JS runtime has been deprecated, and some formats may be missing. See  https://github.com/yt-dlp/yt-dlp/wiki/EJS  for details on installing one
+WARNING: [youtube] 3JYvtP9F2k0: Some web_safari client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: [youtube] 3JYvtP9F2k0: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+ERROR: Postprocessing: ffprobe and ffmpeg not found. Please install or provide the path using --ffmpeg-location
+
+    at YTDlpWrap2.createError (file:///C:/dev/soundboard/dist-electron/main.js:14278:14)
+    at file:///C:/dev/soundboard/dist-electron/main.js:14106:31
+    at ChildProcess.exithandler (node:child_process:430:5)
+    at ChildProcess.emit (node:events:519:28)
+    at maybeClose (node:internal/child_process:1105:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:305:5)
+
