@@ -8,9 +8,14 @@ import { SettingsModal } from './components/SettingsModal';
 import { ConfirmModal } from './components/ConfirmModal';
 import { AudioProvider } from './contexts/AudioContext';
 import { AudioVisualizer } from './components/AudioVisualizer';
+import { OnboardingTour } from './components/OnboardingTour';
 import { Sound } from './types';
 
 function App() {
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    return !localStorage.getItem('hasSeenOnboarding');
+  });
+
   const {
     outputs,
     inputs,
@@ -541,6 +546,7 @@ function App() {
           broadcastVolume={broadcastVolume}
           setBroadcastVolume={setBroadcastVolume}
           refreshDevices={refreshDevices}
+          onReplayOnboarding={() => setShowOnboarding(true)}
         />
 
         <ConfirmModal
@@ -552,6 +558,15 @@ function App() {
           confirmText="Delete"
           isDestructive={true}
         />
+
+        {showOnboarding && (
+          <OnboardingTour
+            onComplete={() => {
+              setShowOnboarding(false);
+              localStorage.setItem('hasSeenOnboarding', 'true');
+            }}
+          />
+        )}
       </div>
     </AudioProvider>
   );

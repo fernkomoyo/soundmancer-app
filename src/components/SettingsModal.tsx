@@ -19,6 +19,7 @@ interface SettingsModalProps {
     broadcastVolume: number;
     setBroadcastVolume: (vol: number) => void;
     refreshDevices: () => void;
+    onReplayOnboarding: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -37,6 +38,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     broadcastVolume,
     setBroadcastVolume,
     refreshDevices,
+    onReplayOnboarding,
 }) => {
     if (!isOpen) return null;
 
@@ -156,6 +158,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                 className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500 hover:accent-purple-400 transition-all"
                             />
                         </div>
+                    </div>
+
+                    <div className="h-px bg-white/10" />
+
+                    {/* Onboarding Control */}
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <label className="text-gray-200 font-medium">Onboarding</label>
+                            <p className="text-xs text-gray-500">View the welcome tour again</p>
+                        </div>
+                        <button
+                            onClick={() => {
+                                onClose();
+                                onReplayOnboarding();
+                            }}
+                            className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-semibold text-blue-300 border border-blue-500/30 transition-all hover:scale-105"
+                        >
+                            Replay Tour
+                        </button>
                     </div>
 
                 </div>
