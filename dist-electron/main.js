@@ -14485,7 +14485,6 @@ app.whenReady().then(() => {
       const tempDir = app.getPath("temp");
       const fileName = `yt_clip_${Date.now()}.mp3`;
       const filePath = path$m.join(tempDir, fileName);
-      console.log("Executing yt-dlp for:", url, "Range:", start, "-", end);
       const args = [
         url,
         "-v",
@@ -14504,7 +14503,6 @@ app.whenReady().then(() => {
         args.push("--download-sections", `*${start}-${end}`);
         args.push("--force-keyframes-at-cuts");
       }
-      console.log("Starting yt-dlp with args:", JSON.stringify(args));
       return new Promise((resolve, reject) => {
         const readableStream = ytDlpWrap.exec(args);
         readableStream.on("progress", (progress) => {
