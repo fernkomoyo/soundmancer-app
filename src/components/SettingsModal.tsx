@@ -21,6 +21,7 @@ interface SettingsModalProps {
     refreshDevices: () => void;
     onReplayOnboarding: () => void;
     onResetSounds: () => void;
+    onShowPatchNotes: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -40,7 +41,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setBroadcastVolume,
     refreshDevices,
     onReplayOnboarding,
-    onResetSounds
+    onResetSounds,
+    onShowPatchNotes
 }) => {
     if (!isOpen) return null;
 
@@ -178,6 +180,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-semibold text-blue-300 border border-blue-500/30 transition-all hover:scale-105"
                         >
                             Replay Tour
+                        </button>
+                    </div>
+
+                    <div className="h-px bg-white/10" />
+
+                    {/* Patch Notes */}
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <label className="text-gray-200 font-medium">What's New</label>
+                            <p className="text-xs text-gray-500">View latest updates and changes</p>
+                        </div>
+                        <button
+                            onClick={onShowPatchNotes}
+                            className="px-4 py-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-xs font-semibold text-blue-400 border border-blue-500/30 transition-all hover:scale-105 flex items-center gap-2"
+                        >
+                            <span>📜</span> Release Notes
                         </button>
                     </div>
 

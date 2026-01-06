@@ -11,6 +11,8 @@ import { AudioVisualizer } from './components/AudioVisualizer';
 import { OnboardingTour } from './components/OnboardingTour';
 import { UpgradeModal } from './components/UpgradeModal';
 import { Sound } from './types';
+import { PatchNotesModal } from './components/PatchNotesModal';
+import { PATCH_NOTES } from './data/patchNotes';
 
 function App() {
   const [showOnboarding, setShowOnboarding] = useState(() => {
@@ -41,6 +43,7 @@ function App() {
     return localStorage.getItem('isPro') === 'true';
   });
   const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
+  const [isPatchNotesOpen, setIsPatchNotesOpen] = useState(false);
   const micAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleUpgrade = () => {
@@ -125,9 +128,32 @@ function App() {
   // Fetch Version
   const [appVersion, setAppVersion] = useState('');
   useEffect(() => {
-    if ((window as any).ipcRenderer) {
-      (window as any).ipcRenderer.invoke('get-app-version').then(setAppVersion);
-    }
+    const checkVersion = async () => {
+      let version = '1.0.1'; // Default fallback
+      if ((window as any).ipcRenderer) {
+        version = await (window as any).ipcRenderer.invoke('get-app-version');
+      }
+      setAppVersion(version);
+
+      // Check for Patch Notes
+      const lastSeenVersion = localStorage.getItem('lastSeenVersion');
+
+      // If no last seen version (fresh install), set it to current without showing notes
+      // OR if version changed, show notes
+      if (!lastSeenVersion) {
+        localStorage.setItem('lastSeenVersion', version);
+      } else if (lastSeenVersion !== version) {
+        // Check if we actually have notes for this new version
+        if (PATCH_NOTES[version]) {
+          setIsPatchNotesOpen(true);
+        }
+        // Update last seen immediately or after close? 
+        // Let's update it when closing the modal or here? 
+        // Better to update it here so we don't spam if they crash.
+        // Actually, let's update it on close ensures they see it.
+      }
+    };
+    checkVersion();
   }, []);
 
   const [toast, setToast] = useState<{ message: string, type: 'info' | 'error' | 'success' | 'action', action?: () => void } | null>(null);
@@ -586,6 +612,10 @@ function App() {
             localStorage.setItem('isPro', 'false');
             setToast({ message: 'All data reset.', type: 'error' });
           }}
+          onShowPatchNotes={() => {
+            setIsSettingsOpen(false);
+            setIsPatchNotesOpen(true);
+          }}
         />
 
         <ConfirmModal
@@ -611,6 +641,16 @@ function App() {
           isOpen={isUpgradeOpen}
           onClose={() => setIsUpgradeOpen(false)}
           onUpgrade={handleUpgrade}
+        />
+
+        <PatchNotesModal
+          isOpen={isPatchNotesOpen}
+          onClose={() => {
+            setIsPatchNotesOpen(false);
+            localStorage.setItem('lastSeenVersion', appVersion);
+          }}
+          version={appVersion}
+          notes={PATCH_NOTES[appVersion] || []}
         />
       </div>
     </AudioProvider>
