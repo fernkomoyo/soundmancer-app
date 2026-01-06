@@ -231,7 +231,7 @@ export const SoundModal: React.FC<SoundModalProps> = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300" onClick={onClose}>
             <div
-                className="glass-panel rounded-2xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 mobile:max-h-[90vh] mobile:overflow-y-auto relative"
+                className="glass-panel rounded-2xl shadow-2xl w-full max-w-md h-[650px] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] relative"
                 style={{ maxHeight: '90vh' }}
                 onClick={(e) => e.stopPropagation()}
             >

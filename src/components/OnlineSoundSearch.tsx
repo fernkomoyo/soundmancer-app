@@ -17,6 +17,11 @@ export const OnlineSoundSearch: React.FC<OnlineSoundSearchProps> = ({ onDownload
     const [hasNext, setHasNext] = useState(false);
     const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
+    // Load Trending on mount
+    React.useEffect(() => {
+        performSearch('', 1);
+    }, []);
+
     const performSearch = async (searchQuery: string, pageNum: number) => {
         setLoading(true);
         try {
@@ -49,11 +54,13 @@ export const OnlineSoundSearch: React.FC<OnlineSoundSearchProps> = ({ onDownload
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!query.trim()) return;
+        // Allow empty query to reload trending
         setPage(1);
         setResults([]);
         await performSearch(query, 1);
     };
+
+
 
     const handleLoadMore = async () => {
         const nextPage = page + 1;
@@ -88,34 +95,70 @@ export const OnlineSoundSearch: React.FC<OnlineSoundSearchProps> = ({ onDownload
 
     return (
         <div className="flex flex-col h-full overflow-hidden">
-            <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-                <input
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search sounds (e.g., vine boom)..."
-                    className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    autoFocus
-                />
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-white font-bold transition-colors disabled:opacity-50"
-                >
-                    {loading ? '...' : 'Search'}
-                </button>
-            </form>
+            <div className="flex gap-2 mb-4">
+                <form onSubmit={handleSearch} className="flex-1 flex gap-2">
+                    <input
+                        type="text"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Search sounds..."
+                        className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        autoFocus
+                    />
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-white font-bold transition-colors disabled:opacity-50"
+                    >
+                        {loading ? '...' : 'Search'}
+                    </button>
+                </form>
+            </div>
+
+            {/* Category Chips */}
+            <div className="flex gap-2 overflow-x-auto pb-2 mb-2 custom-scrollbar snap-x no-scrollbar">
+                {[
+                    { label: 'Trending', icon: '🔥', query: '' },
+                    { label: 'Memes', icon: '🐸', query: 'meme' },
+                    { label: 'Anime', icon: '⛩️', query: 'anime' },
+                    { label: 'Games', icon: '🎮', query: 'game' },
+                    { label: 'Movies', icon: '🎬', query: 'movie' },
+                    { label: 'Music', icon: '🎵', query: 'music' },
+                    { label: 'Effects', icon: '💥', query: 'effect' },
+                    { label: 'Horror', icon: '👻', query: 'horror' },
+                    { label: 'TikTok', icon: '📱', query: 'tiktok' },
+                ].map((cat) => (
+                    <button
+                        key={cat.label}
+                        onClick={() => {
+                            setQuery(cat.query);
+                            setPage(1);
+                            setResults([]);
+                            performSearch(cat.query, 1);
+                        }}
+                        className={`
+                            whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold border transition-all snap-start shrink-0 flex items-center gap-1.5
+                            ${(query === cat.query)
+                                ? 'bg-blue-500 text-white border-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.5)]'
+                                : 'bg-gray-800 text-gray-400 border-gray-700 hover:bg-gray-700 hover:text-gray-200'}
+                        `}
+                    >
+                        <span>{cat.icon}</span>
+                        <span>{cat.label}</span>
+                    </button>
+                ))}
+            </div>
 
             <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                {results.length > 0 && (
-                    <div className="text-xs text-gray-500 mb-2">
-                        Found {totalCount} results
+                {results.length > 0 && query && (
+                    <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                        <span>Found {totalCount} results</span>
                     </div>
                 )}
 
                 {results.length === 0 && !loading && (
                     <div className="text-center text-gray-500 py-8">
-                        {query ? 'No results found.' : 'Search for sounds above.'}
+                        {query ? 'No results found.' : 'Loading trending sounds...'}
                     </div>
                 )}
 
