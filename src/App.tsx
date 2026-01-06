@@ -46,6 +46,10 @@ function App() {
   ];
 
   const filteredSounds = sounds.filter(s => {
+    if (isMiniMode) {
+      return s.isFavorite;
+    }
+
     if (selectedCategory === 'Favorites') {
       return s.isFavorite && s.name.toLowerCase().includes(searchQuery.toLowerCase());
     }
