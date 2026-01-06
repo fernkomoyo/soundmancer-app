@@ -41,8 +41,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn">
-            <div className="relative w-full max-w-lg p-8 bg-gray-900/90 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-md overflow-hidden animate-slideUp">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn" onClick={onClose}>
+            <div
+                className="relative w-full max-w-lg p-8 bg-gray-900/90 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-md overflow-hidden animate-slideUp"
+                onClick={(e) => e.stopPropagation()}
+            >
 
                 {/* Decorative background glow */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />

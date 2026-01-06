@@ -34,10 +34,15 @@ function App() {
   const micAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // Derived state for categories
+  // Derived state for categories
+  const dynamicCategories = new Set(sounds.map(s => s.category || 'Uncategorized'));
+  dynamicCategories.delete('All');       // Prevent duplicate 'All'
+  dynamicCategories.delete('Favorites'); // Prevent duplicate 'Favorites' (handled separately)
+
   const categories = [
     'All',
     ...(sounds.some(s => s.isFavorite) ? ['Favorites'] : []),
-    ...new Set(sounds.map(s => s.category || 'Uncategorized'))
+    ...Array.from(dynamicCategories)
   ];
 
   const filteredSounds = sounds.filter(s => {
