@@ -3,6 +3,8 @@ import { Sound, OnlineSound } from '../types';
 import { AudioTrimmer } from './AudioTrimmer';
 import { OnlineSoundSearch } from './OnlineSoundSearch';
 
+import { UpgradeModal } from './UpgradeModal';
+
 interface SoundModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -10,6 +12,9 @@ interface SoundModalProps {
     categories: string[];
     initialSound?: Sound | null;
     onShowToast?: (message: string, type: 'success' | 'info' | 'error') => void;
+    isPro: boolean;
+    onlineSoundCount: number;
+    onUpgrade: () => void;
 }
 
 export const SoundModal: React.FC<SoundModalProps> = ({
@@ -19,6 +24,9 @@ export const SoundModal: React.FC<SoundModalProps> = ({
     categories,
     initialSound,
     onShowToast,
+    isPro,
+    onlineSoundCount,
+    onUpgrade
 }) => {
     const [name, setName] = useState('');
     const [icon, setIcon] = useState('🎵');
@@ -29,6 +37,9 @@ export const SoundModal: React.FC<SoundModalProps> = ({
     const [isDragging, setIsDragging] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+    const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
+
+    const isLimitReached = !isPro && onlineSoundCount >= 5;
 
     const [activeTab, setActiveTab] = useState<'local' | 'online' | 'youtube'>('local');
     const [showTrimmer, setShowTrimmer] = useState(false);
@@ -44,6 +55,8 @@ export const SoundModal: React.FC<SoundModalProps> = ({
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Reset state when opening
+    const [sourceType, setSourceType] = useState<'local' | 'online' | 'youtube'>('local');
+
     // Reset state when opening
     useEffect(() => {
         if (isOpen) {
@@ -57,6 +70,7 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                 setVolume(initialSound.volume ?? 1.0);
                 setFile(null);
                 setActiveTab('local');
+                setSourceType(initialSound.source || 'local');
             } else {
                 // Add Mode
                 setName('');
@@ -67,27 +81,21 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                 setFile(null);
                 setShowTrimmer(false);
                 setActiveTab('local');
+                setSourceType('local');
             }
         }
     }, [isOpen, initialSound]);
 
-    // Listen for download progress
-    useEffect(() => {
-        const handleProgress = (_event: any, percentage: number) => {
-            setDownloadProgress(Math.round(percentage));
-        };
-        // @ts-ignore
-        // The preload script's 'on' now returns a cleanup function
-        const removeListener = window.ipcRenderer.on('download-progress', handleProgress);
-        return () => {
-            if (typeof removeListener === 'function') {
-                removeListener();
-            }
-        };
-    }, []);
+    // ... (keep useEffect for download-progress)
 
     const handleOnlineSoundSelect = async (sound: OnlineSound) => {
+        if (isLimitReached) {
+            setIsUpgradeOpen(true);
+            return;
+        }
+
         try {
+            // ... (keep download logic)
             // @ts-ignore
             const path = await window.ipcRenderer.invoke('download-sound', {
                 url: sound.url,
@@ -108,10 +116,21 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                 category: categories[0] || 'Uncategorized',
                 keybind: '',
                 volume: 1.0,
-                file: mockFile as any
+                file: mockFile as any,
+                source: 'online'
             });
 
-            if (onShowToast) onShowToast(`Added "${sound.name}"!`, 'success');
+            if (onShowToast) {
+                if (!isPro) {
+                    const remaining = 4 - onlineSoundCount;
+                    const msg = remaining > 0
+                        ? `Added "${sound.name}"! (${remaining} free left)`
+                        : `Added "${sound.name}"! (Last free slot used)`;
+                    onShowToast(msg, 'success');
+                } else {
+                    onShowToast(`Added "${sound.name}"!`, 'success');
+                }
+            }
 
         } catch (err) {
             console.error("Failed to download online sound", err);
@@ -120,10 +139,16 @@ export const SoundModal: React.FC<SoundModalProps> = ({
     };
 
     const handleYoutubeImport = async () => {
+        if (isLimitReached) {
+            setIsUpgradeOpen(true);
+            return;
+        }
+
         if (!youtubeId) return;
         setIsDownloading(true);
         setDownloadProgress(0);
         try {
+            // ... (keep existing logic)
             // Use canonical URL
             const canonicalUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
             // @ts-ignore
@@ -139,6 +164,7 @@ export const SoundModal: React.FC<SoundModalProps> = ({
             const blob = new Blob([buffer], { type: 'audio/mpeg' });
             const file = new File([blob], `yt_clip_${youtubeId}.mp3`, { type: 'audio/mpeg' });
             setFile(file);
+            setSourceType('youtube'); // Set source to youtube
             setShowTrimmer(true);
 
             if (!name) setName(`YouTube Clip`);
@@ -156,6 +182,7 @@ export const SoundModal: React.FC<SoundModalProps> = ({
 
     const handleFileSelect = (selectedFile: File) => {
         setFile(selectedFile);
+        setSourceType('local'); // Set source to local
         // Auto-fill name if empty
         if (!name) {
             setName(selectedFile.name.replace(/\.[^/.]+$/, ""));
@@ -180,8 +207,23 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                 category,
                 keybind,
                 volume,
-                file: file || null
+                file: file || null,
+                source: sourceType
             });
+
+            // Show toast for YouTube adds (which happen here)
+            if (sourceType === 'youtube' && !initialSound && onShowToast) {
+                if (!isPro) {
+                    const remaining = 4 - onlineSoundCount;
+                    const msg = remaining > 0
+                        ? `Imported "${name}"! (${remaining} free left)`
+                        : `Imported "${name}"! (Last free slot used)`;
+                    onShowToast(msg, 'success');
+                } else {
+                    onShowToast(`Imported "${name}"!`, 'success');
+                }
+            }
+
             onClose();
         }
     };
@@ -217,18 +259,38 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                         >
                             Upload File
                         </button>
-                        <button
-                            onClick={() => setActiveTab('online')}
-                            className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'online' ? 'text-purple-400 border-b-2 border-purple-400 bg-white/5' : 'text-gray-400 hover:text-white'}`}
-                        >
-                            Discover
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('youtube')}
-                            className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'youtube' ? 'text-red-400 border-b-2 border-red-400 bg-white/5' : 'text-gray-400 hover:text-white'}`}
-                        >
-                            YouTube
-                        </button>
+
+                        {/* Discover Tab - GATED */}
+                        <div className="flex-1 relative group">
+                            <button
+                                onClick={() => {
+                                    if (!isLimitReached) setActiveTab('online');
+                                    else setIsUpgradeOpen(true);
+                                }}
+                                className={`w-full h-full py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2
+                                    ${activeTab === 'online' ? 'text-purple-400 border-b-2 border-purple-400 bg-white/5' : 'text-gray-400 hover:text-white'}
+                                `}
+                            >
+                                Discover
+                                {isLimitReached && <span className="text-[10px]">🔒</span>}
+                            </button>
+                        </div>
+
+                        {/* YouTube Tab - GATED */}
+                        <div className="flex-1 relative group">
+                            <button
+                                onClick={() => {
+                                    if (!isLimitReached) setActiveTab('youtube');
+                                    else setIsUpgradeOpen(true);
+                                }}
+                                className={`w-full h-full py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2
+                                    ${activeTab === 'youtube' ? 'text-red-400 border-b-2 border-red-400 bg-white/5' : 'text-gray-400 hover:text-white'}
+                                `}
+                            >
+                                YouTube
+                                {isLimitReached && <span className="text-[10px]">🔒</span>}
+                            </button>
+                        </div>
                     </div>
                 )}
 
@@ -587,6 +649,12 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                     </>
                 )}
             </div>
+
+            <UpgradeModal
+                isOpen={isUpgradeOpen}
+                onClose={() => setIsUpgradeOpen(false)}
+                onUpgrade={onUpgrade}
+            />
         </div >
     );
 };

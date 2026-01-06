@@ -20,6 +20,7 @@ interface SettingsModalProps {
     setBroadcastVolume: (vol: number) => void;
     refreshDevices: () => void;
     onReplayOnboarding: () => void;
+    onResetSounds: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -39,6 +40,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setBroadcastVolume,
     refreshDevices,
     onReplayOnboarding,
+    onResetSounds
 }) => {
     if (!isOpen) return null;
 
@@ -176,6 +178,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-semibold text-blue-300 border border-blue-500/30 transition-all hover:scale-105"
                         >
                             Replay Tour
+                        </button>
+                    </div>
+
+                    <div className="h-px bg-white/10" />
+
+                    {/* Reset All Data - Destructive */}
+                    <div className="flex items-center justify-between pb-2">
+                        <div>
+                            <label className="text-red-400 font-medium">Reset All Data</label>
+                            <p className="text-xs text-red-400/50">Delete all sounds and reset settings</p>
+                        </div>
+                        <button
+                            onClick={() => {
+                                if (window.confirm('Are you sure? This will delete ALL sounds and cannot be undone.')) {
+                                    onResetSounds();
+                                    onClose();
+                                }
+                            }}
+                            className="px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-xs font-semibold text-red-500 border border-red-500/30 transition-all hover:scale-105"
+                        >
+                            Reset Everything
                         </button>
                     </div>
 

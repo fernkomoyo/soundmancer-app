@@ -8,6 +8,7 @@ export interface Sound {
     category?: string;
     keybind?: string;
     isFavorite?: boolean;
+    source?: 'local' | 'online' | 'youtube';
 }
 
 export interface OnlineSound {

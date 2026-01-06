@@ -9,6 +9,7 @@ import { ConfirmModal } from './components/ConfirmModal';
 import { AudioProvider } from './contexts/AudioContext';
 import { AudioVisualizer } from './components/AudioVisualizer';
 import { OnboardingTour } from './components/OnboardingTour';
+import { UpgradeModal } from './components/UpgradeModal';
 import { Sound } from './types';
 
 function App() {
@@ -36,7 +37,20 @@ function App() {
   const [editingSound, setEditingSound] = useState<Sound | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMiniMode, setIsMiniMode] = useState(false); // New State
+  const [isPro, setIsPro] = useState(() => {
+    return localStorage.getItem('isPro') === 'true';
+  });
+  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
   const micAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleUpgrade = () => {
+    setIsPro(true);
+    localStorage.setItem('isPro', 'true');
+    setToast({ message: 'Welcome to Pro! You are awesome. 👑', type: 'success' });
+  };
+
+  // Count how many sounds are from online/youtube sources
+  const onlineSoundCount = sounds.filter(s => s.source === 'online' || s.source === 'youtube').length;
 
   // Derived state for categories
   // Derived state for categories
@@ -283,7 +297,8 @@ function App() {
             keybind: soundData.keybind, // Allow clearing keybind
             volume: soundData.volume !== undefined ? soundData.volume : s.volume,
             isFavorite: s.isFavorite,
-            path: newPath
+            path: newPath,
+            source: s.source || soundData.source || 'local'
           };
         }
         return s;
@@ -309,7 +324,8 @@ function App() {
           icon: soundData.icon || '🎵',
           category: soundData.category || 'Uncategorized',
           keybind: soundData.keybind,
-          volume: soundData.volume ?? 1
+          volume: soundData.volume ?? 1,
+          source: soundData.source || 'local'
         };
 
         updateSounds([...sounds, newSound]);
@@ -373,6 +389,16 @@ function App() {
                 >
                   Mini Mode
                 </button>
+
+                {!isPro && (
+                  <button
+                    onClick={() => setIsUpgradeOpen(true)}
+                    className="no-drag flex items-center gap-1.5 text-[10px] font-bold tracking-wider uppercase bg-gradient-to-r from-yellow-600/80 to-yellow-500/80 hover:from-yellow-500 hover:to-yellow-400 border border-yellow-500/30 px-3 py-1.5 rounded-full transition-all hover:scale-105 active:scale-95 relative z-50 cursor-pointer backdrop-blur-md text-white shadow-[0_0_15px_rgba(234,179,8,0.2)]"
+                    style={{ WebkitAppRegion: 'no-drag' } as any}
+                  >
+                    <span>👑</span> PRO
+                  </button>
+                )}
               </div>
 
               <button
@@ -528,6 +554,9 @@ function App() {
           categories={categories}
           initialSound={editingSound}
           onShowToast={(message, type) => setToast({ message, type })}
+          isPro={isPro}
+          onlineSoundCount={onlineSoundCount}
+          onUpgrade={handleUpgrade}
         />
 
         <div className="fixed bottom-2 right-2 text-[10px] text-gray-500 font-mono opacity-50 pointer-events-none select-none">
@@ -551,6 +580,12 @@ function App() {
           setBroadcastVolume={setBroadcastVolume}
           refreshDevices={refreshDevices}
           onReplayOnboarding={() => setShowOnboarding(true)}
+          onResetSounds={() => {
+            updateSounds([]);
+            setIsPro(false);
+            localStorage.setItem('isPro', 'false');
+            setToast({ message: 'All data reset.', type: 'error' });
+          }}
         />
 
         <ConfirmModal
@@ -571,6 +606,12 @@ function App() {
             }}
           />
         )}
+
+        <UpgradeModal
+          isOpen={isUpgradeOpen}
+          onClose={() => setIsUpgradeOpen(false)}
+          onUpgrade={handleUpgrade}
+        />
       </div>
     </AudioProvider>
   );
