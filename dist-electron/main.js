@@ -14508,10 +14508,16 @@ app.whenReady().then(() => {
       return new Promise((resolve, reject) => {
         const readableStream = ytDlpWrap.exec(args);
         readableStream.on("progress", (progress) => {
-          console.log(`yt-dlp progress: ${progress.percent}%`);
+          _event.sender.send("download-progress", progress.percent);
         });
         readableStream.on("ytDlpEvent", (eventType, eventData) => {
-          console.log(`[yt-dlp] ${eventType}: ${eventData}`);
+          if (eventType === "youtube") {
+            if (eventData.includes("Downloading webpage")) _event.sender.send("download-progress", 10);
+            else if (eventData.includes("Extracting URL")) _event.sender.send("download-progress", 5);
+          } else if (eventType === "info") {
+            if (eventData.includes("Downloading 1 time ranges")) _event.sender.send("download-progress", 25);
+          }
+          if (eventType === "error") console.error(`[yt-dlp] ${eventData}`);
         });
         readableStream.on("error", (error2) => {
           console.error("yt-dlp error:", error2);

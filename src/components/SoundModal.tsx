@@ -39,12 +39,15 @@ export const SoundModal: React.FC<SoundModalProps> = ({
     const [clipStart, setClipStart] = useState(0);
     const [clipEnd, setClipEnd] = useState(10);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [downloadProgress, setDownloadProgress] = useState(0);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Reset state when opening
+    // Reset state when opening
     useEffect(() => {
         if (isOpen) {
+            setDownloadProgress(0);
             if (initialSound) {
                 // Edit Mode
                 setName(initialSound.name);
@@ -52,8 +55,6 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                 setCategory(initialSound.category || categories[0] || 'Uncategorized');
                 setKeybind(initialSound.keybind || '');
                 setVolume(initialSound.volume ?? 1.0);
-                // For editing, we don't necessarily need a file ref unless they change it
-                // We'll handle this by making file optional in onSave
                 setFile(null);
                 setActiveTab('local');
             } else {
@@ -70,6 +71,21 @@ export const SoundModal: React.FC<SoundModalProps> = ({
         }
     }, [isOpen, initialSound]);
 
+    // Listen for download progress
+    useEffect(() => {
+        const handleProgress = (_event: any, percentage: number) => {
+            setDownloadProgress(Math.round(percentage));
+        };
+        // @ts-ignore
+        // The preload script's 'on' now returns a cleanup function
+        const removeListener = window.ipcRenderer.on('download-progress', handleProgress);
+        return () => {
+            if (typeof removeListener === 'function') {
+                removeListener();
+            }
+        };
+    }, []);
+
     const handleOnlineSoundSelect = async (sound: OnlineSound) => {
         try {
             // @ts-ignore
@@ -78,15 +94,14 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                 fileName: sound.name
             });
 
-            // Mock a File object with the path for App.tsx to read
+            // Mock a File object
             const mockFile = {
                 name: sound.name + '.mp3',
                 path: path,
-                size: 0, // Unknown, doesn't matter much for local
+                size: 0,
                 type: 'audio/mpeg'
             };
 
-            // Quick Save immediate
             onSave({
                 name: sound.name,
                 icon: sound.icon || '🎵',
@@ -96,23 +111,20 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                 file: mockFile as any
             });
 
-            if (onShowToast) {
-                onShowToast(`Added "${sound.name}"!`, 'success');
-            }
+            if (onShowToast) onShowToast(`Added "${sound.name}"!`, 'success');
 
         } catch (err) {
             console.error("Failed to download online sound", err);
-            if (onShowToast) {
-                onShowToast("Failed to download sound.", 'error');
-            }
+            if (onShowToast) onShowToast("Failed to download sound.", 'error');
         }
     };
 
     const handleYoutubeImport = async () => {
         if (!youtubeId) return;
         setIsDownloading(true);
+        setDownloadProgress(0);
         try {
-            // Use canonical URL to avoid issues with malformed input
+            // Use canonical URL
             const canonicalUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
             // @ts-ignore
             const path = await window.ipcRenderer.invoke('download-youtube-audio', {
@@ -121,24 +133,22 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                 end: clipEnd
             });
 
-            // Fetch via IPC to bypass protocol/fetch issues
+            // Fetch via IPC
             // @ts-ignore
             const buffer = await window.ipcRenderer.invoke('read-file', path);
             const blob = new Blob([buffer], { type: 'audio/mpeg' });
             const file = new File([blob], `yt_clip_${youtubeId}.mp3`, { type: 'audio/mpeg' });
             setFile(file);
-            // Switch to Trimmer
             setShowTrimmer(true);
 
-            // Auto fill details
             if (!name) setName(`YouTube Clip`);
         } catch (err: any) {
             console.error("YouTube import error", err);
-            // Show actual error message if available
             const errorMessage = err.message || "Failed to download YouTube video.";
             if (onShowToast) onShowToast(`Error: ${errorMessage}`, 'error');
         } finally {
             setIsDownloading(false);
+            setDownloadProgress(0);
         }
     };
 
@@ -311,7 +321,10 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                             `}
                         >
                             {isDownloading ? (
-                                <><span>⏳</span> Downloading Audio...</>
+                                <span className="flex items-center gap-2">
+                                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                    {downloadProgress > 0 ? `Downloading ${downloadProgress}%` : 'Downloading...'}
+                                </span>
                             ) : (
                                 <><span>✂️</span> Clip & Import Sound</>
                             )}

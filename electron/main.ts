@@ -266,11 +266,21 @@ app.whenReady().then(() => {
         const readableStream = ytDlpWrap.exec(args);
 
         readableStream.on('progress', (progress: any) => {
-          console.log(`yt-dlp progress: ${progress.percent}%`);
+          _event.sender.send('download-progress', progress.percent);
         });
 
         readableStream.on('ytDlpEvent', (eventType: string, eventData: string) => {
-          console.log(`[yt-dlp] ${eventType}: ${eventData}`);
+          // Estimate progress for startup phases to keep UI responsive
+          if (eventType === 'youtube') {
+            if (eventData.includes('Downloading webpage')) _event.sender.send('download-progress', 10);
+            else if (eventData.includes('Extracting URL')) _event.sender.send('download-progress', 5);
+          }
+          else if (eventType === 'info') {
+            if (eventData.includes('Downloading 1 time ranges')) _event.sender.send('download-progress', 25);
+          }
+
+          // Keep critical error logging but reduce noise
+          if (eventType === 'error') console.error(`[yt-dlp] ${eventData}`);
         });
 
         readableStream.on('error', (error: Error) => {
