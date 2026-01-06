@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import logoHeader from './assets/logo-header.jpg';
+import logoHeader from './assets/logo-v4.png';
 import './App.css';
 import { useAudioDevices } from './hooks/useAudioOutput';
 import { SoundGrid } from './components/SoundGrid';
@@ -351,13 +351,17 @@ function App() {
   return (
     <AudioProvider>
       <div className={`flex flex-col h-screen bg-transparent text-white overflow-hidden transition-all duration-300 ${isMiniMode ? 'rounded-3xl' : ''}`}>
+
+        {/* Noise Texture Overlay */}
+        <div className="fixed inset-0 opacity-[0.03] pointer-events-none z-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
+
         {/* Header */}
         {!isMiniMode && (
           <header className="flex flex-col gap-5 p-6 glass-header relative z-20 drag">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <h1 className="text-4xl font-black tracking-tighter flex items-center gap-3 italic relative group">
-                  <img src={logoHeader} alt="Logo" className="w-12 h-12 rounded-xl shadow-lg border border-white/10 group-hover:scale-110 transition-transform duration-500" />
+                  <img src={logoHeader} alt="Logo" className="w-12 h-12 rounded-xl border border-white/10 group-hover:scale-110 transition-transform duration-500 blend-screen" />
                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 glow-text animate-pulse-slow pr-2">
                     SoundMancer
                   </span>

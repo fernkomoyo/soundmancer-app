@@ -210,15 +210,18 @@ export const SoundButton: React.FC<SoundButtonProps> = ({
             onDragStart={handleDragStart}
             className={`
         relative group flex flex-col items-center justify-center
-        w-40 h-40 rounded-2xl cursor-pointer transition-all duration-300 backdrop-blur-md
-        border border-white/5 shadow-lg overflow-hidden z-10
+        w-40 h-40 rounded-2xl cursor-pointer transition-all duration-300
+        backdrop-blur-md border overflow-hidden z-10
         ${isPlaying
-                    ? 'bg-blue-600/20 border-blue-400/50 shadow-[0_0_30px_rgba(59,130,246,0.3)] scale-[0.98]'
-                    : 'bg-white/5 hover:bg-white/10 hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:border-white/20'}
+                    ? 'bg-blue-600/20 border-blue-400/50 shadow-[0_0_40px_rgba(59,130,246,0.4)] scale-[0.98]'
+                    : 'bg-white/5 border-white/5 hover:bg-white/10 hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] hover:border-white/20'}
       `}
             onClick={playSound}
             onContextMenu={stopSound} // Right click to stop
         >
+            {/* Inner Glow / Reflection */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
             {sound.icon?.match(/^(https?:\/\/|data:|media:\/\/)/) ? (
                 <img
                     src={sound.icon}

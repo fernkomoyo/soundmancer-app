@@ -187,12 +187,16 @@ export const SoundModal: React.FC<SoundModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300" onClick={onClose}>
             <div
-                className="glass-panel rounded-2xl shadow-2xl w-full max-w-md border border-white/10 flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200 mobile:max-h-[90vh] mobile:overflow-y-auto"
+                className="glass-panel rounded-2xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 mobile:max-h-[90vh] mobile:overflow-y-auto relative"
                 style={{ maxHeight: '90vh' }}
                 onClick={(e) => e.stopPropagation()}
             >
+                {/* Decorative Glows */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] pointer-events-none" />
+
                 {/* Header */}
                 <div className="p-4 border-b border-white/10 bg-white/5 flex justify-between items-center">
                     <div>

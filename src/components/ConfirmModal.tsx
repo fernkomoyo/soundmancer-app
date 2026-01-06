@@ -24,11 +24,14 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={onClose}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300" onClick={onClose}>
             <div
-                className="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl scale-100 animate-in zoom-in-95 duration-200"
+                className="glass-panel rounded-2xl p-8 w-full max-w-sm shadow-2xl scale-100 animate-in zoom-in-95 duration-200 relative overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
+                {/* Decorative Glow */}
+                <div className={`absolute -top-10 -right-10 w-40 h-40 rounded-full blur-[60px] pointer-events-none ${isDestructive ? 'bg-red-500/20' : 'bg-blue-500/20'}`} />
+
                 <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
                 <p className="text-gray-400 mb-6 font-medium">{message}</p>
 
