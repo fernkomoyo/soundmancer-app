@@ -14,6 +14,10 @@ import { Sound } from './types';
 import { PatchNotesModal } from './components/PatchNotesModal';
 import { PATCH_NOTES } from './data/patchNotes';
 
+import vineBoom from './assets/sounds/vine-boom.mp3';
+import bruh from './assets/sounds/bruh.mp3';
+import airhorn from './assets/sounds/airhorn.mp3';
+
 function App() {
   const [showOnboarding, setShowOnboarding] = useState(() => {
     return !localStorage.getItem('hasSeenOnboarding');
@@ -85,17 +89,64 @@ function App() {
   // Load Sounds on Startup
   useEffect(() => {
     const INITIAL_SOUNDS: Sound[] = [
-      { id: '1', name: 'Vine Boom', path: 'https://www.myinstants.com/media/sounds/vine-boom.mp3', icon: '💥', category: 'Memes' },
-      { id: '2', name: 'Bruh', path: 'https://www.myinstants.com/media/sounds/movie_1.mp3', icon: '🗿', category: 'Memes' },
-      { id: '3', name: 'Airhorn', path: 'https://www.myinstants.com/media/sounds/airhorn.mp3', icon: '📣', category: 'Effects' },
+      { id: '1', name: 'Vine Boom', path: vineBoom, icon: '💥', category: 'Memes' },
+      { id: '2', name: 'Bruh', path: bruh, icon: '🗿', category: 'Memes' },
+      { id: '3', name: 'Airhorn', path: airhorn, icon: '📣', category: 'Effects' },
     ];
+
+    const migrateLegacySounds = async (loadedSounds: Sound[]) => {
+      let hasChanges = false;
+      const migratedSounds = await Promise.all(loadedSounds.map(async (sound) => {
+        // Check if sound is remote (http/https) and NOT a local file (media:// or blob:)
+        if (sound.path && sound.path.startsWith('http')) {
+          try {
+            // @ts-ignore
+            if ((window as any).ipcRenderer) {
+              console.log(`Migrating legacy sound: ${sound.name}`);
+              // Fetch the file as a buffer
+              const response = await fetch(sound.path);
+              const arrayBuffer = await response.arrayBuffer();
+
+              // @ts-ignore
+              const savedPath = await (window as any).ipcRenderer.invoke('save-audio-file', {
+                buffer: arrayBuffer,
+                name: sound.name
+              });
+
+              hasChanges = true;
+              return {
+                ...sound,
+                path: `media://${savedPath}`,
+                source: 'local' // Mark as local now
+              };
+            }
+          } catch (err) {
+            console.error(`Failed to migrate sound ${sound.name}:`, err);
+            return sound; // Keep original if migration fails
+          }
+        }
+        return sound;
+      }));
+
+      if (hasChanges) {
+        setSounds(migratedSounds as Sound[]);
+        // Save effectively updates persistence
+        // @ts-ignore
+        (window as any).ipcRenderer.invoke('save-sounds', migratedSounds)
+          .catch((err: any) => console.error("Failed to save migrated sounds:", err));
+        setToast({ message: 'Sounds migrated to local storage.', type: 'success' });
+      } else {
+        setSounds(loadedSounds);
+      }
+    };
 
     const loadSounds = async () => {
       if ((window as any).ipcRenderer) {
         try {
           const loadedSounds = await (window as any).ipcRenderer.invoke('load-sounds');
           if (loadedSounds && loadedSounds.length > 0) {
-            setSounds(loadedSounds);
+            // Attempt migration on loaded sounds
+            await migrateLegacySounds(loadedSounds);
           } else {
             setSounds(INITIAL_SOUNDS);
           }
@@ -140,17 +191,26 @@ function App() {
 
       // If no last seen version (fresh install), set it to current without showing notes
       // OR if version changed, show notes
+      // If no last seen version...
       if (!lastSeenVersion) {
-        localStorage.setItem('lastSeenVersion', version);
+        // CORRECTION: existing users might not have lastSeenVersion set yet.
+        // If they have seen onboarding, they are an existing user, so we SHOULD show notes for this 'new' version (1.0.2).
+        const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding') === 'true';
+
+        if (hasSeenOnboarding) {
+          // Existing user encountering this feature for the first time -> Show notes
+          if (PATCH_NOTES[version]) {
+            setIsPatchNotesOpen(true);
+          }
+        } else {
+          // Truly new user -> Don't show notes
+          localStorage.setItem('lastSeenVersion', version);
+        }
       } else if (lastSeenVersion !== version) {
-        // Check if we actually have notes for this new version
+        // Standard update case
         if (PATCH_NOTES[version]) {
           setIsPatchNotesOpen(true);
         }
-        // Update last seen immediately or after close? 
-        // Let's update it when closing the modal or here? 
-        // Better to update it here so we don't spam if they crash.
-        // Actually, let's update it on close ensures they see it.
       }
     };
     checkVersion();
@@ -284,8 +344,20 @@ function App() {
     setSoundToDelete(id);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (soundToDelete) {
+      const sound = sounds.find(s => s.id === soundToDelete);
+
+      // Delete from disk if it's a local file
+      if (sound && sound.path && sound.path.startsWith('media://') && (window as any).ipcRenderer) {
+        try {
+          const filePath = sound.path.replace('media://', '');
+          await (window as any).ipcRenderer.invoke('delete-sound-file', filePath);
+        } catch (err) {
+          console.error("Failed to delete local file:", err);
+        }
+      }
+
       const newSounds = sounds.filter(s => s.id !== soundToDelete);
       updateSounds(newSounds);
       setToast({ message: 'Sound deleted successfully.', type: 'error' }); // 'error' used for red color

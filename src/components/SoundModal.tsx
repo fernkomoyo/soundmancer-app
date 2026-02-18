@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Sound, OnlineSound } from '../types';
 import { AudioTrimmer } from './AudioTrimmer';
 import { OnlineSoundSearch } from './OnlineSoundSearch';
-
 import { UpgradeModal } from './UpgradeModal';
+import { fileToAudioBuffer, normalizeAudioBuffer, bufferToWav } from '../utils/audioUtils';
 
 interface SoundModalProps {
     isOpen: boolean;
@@ -38,6 +38,7 @@ export const SoundModal: React.FC<SoundModalProps> = ({
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
     const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
+    // const [isNormalizing, setIsNormalizing] = useState(false); // Removed as automatic now
 
     const isLimitReached = !isPro && onlineSoundCount >= 5;
 
@@ -61,6 +62,7 @@ export const SoundModal: React.FC<SoundModalProps> = ({
     useEffect(() => {
         if (isOpen) {
             setDownloadProgress(0);
+            // setIsNormalizing(false); // Unused
             if (initialSound) {
                 // Edit Mode
                 setName(initialSound.name);
@@ -86,6 +88,41 @@ export const SoundModal: React.FC<SoundModalProps> = ({
         }
     }, [isOpen, initialSound]);
 
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    // Helper to process and normalize any file before setting it to state
+    const processAndSetFile = async (rawFile: File, source: 'local' | 'online' | 'youtube') => {
+        setIsProcessing(true);
+        try {
+            // 1. Decode
+            const audioBuffer = await fileToAudioBuffer(rawFile);
+
+            // 2. Normalize
+            const normalizedBuffer = await normalizeAudioBuffer(audioBuffer);
+
+            // 3. Encode back to WAV
+            const normalizedBlob = bufferToWav(normalizedBuffer);
+            const normalizedFile = new File([normalizedBlob], rawFile.name, { type: 'audio/wav' });
+
+            setFile(normalizedFile);
+            setSourceType(source);
+
+            // Auto-fill name if empty and local
+            if (!name && source === 'local') {
+                setName(rawFile.name.replace(/\.[^/.]+$/, ""));
+            }
+
+        } catch (err) {
+            console.error("Auto-normalization failed:", err);
+            // Fallback to original file if normalization fails
+            setFile(rawFile);
+            setSourceType(source);
+            if (onShowToast) onShowToast("Could not auto-normalize, using original.", "error");
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
     // ... (keep useEffect for download-progress)
 
     const handleOnlineSoundSelect = async (sound: OnlineSound) => {
@@ -95,7 +132,6 @@ export const SoundModal: React.FC<SoundModalProps> = ({
         }
 
         try {
-            // ... (keep download logic)
             // @ts-ignore
             const path = await window.ipcRenderer.invoke('download-sound', {
                 url: sound.url,
@@ -103,11 +139,49 @@ export const SoundModal: React.FC<SoundModalProps> = ({
             });
 
             // Mock a File object
+            // Mock a File object (removed)
+            /*
             const mockFile = {
                 name: sound.name + '.mp3',
                 path: path,
                 size: 0,
                 type: 'audio/mpeg'
+            };
+            */
+
+            // Process/Normalize the downloaded file
+            // Note: We can't easily read the file back here without more IPC if it was just downloaded to disk.
+            // BUT, we can just fetch it? Or rely on the mock?
+            // Wait, processAndSetFile expects a File/Blob that fileToAudioBuffer can read.
+            // If mockFile.path is 'media://...', fileToAudioBuffer might fail if it uses FileReader on the "File" object which is just a POJO here.
+            // We need to actually read the file into a Blob first.
+
+            // @ts-ignore
+            const buffer = await window.ipcRenderer.invoke('read-file', path);
+            const blob = new Blob([buffer], { type: 'audio/mpeg' });
+            const realFile = new File([blob], sound.name + '.mp3', { type: 'audio/mpeg' });
+
+            // Now normalize it
+            const audioBuffer = await fileToAudioBuffer(realFile);
+            const normalizedBuffer = await normalizeAudioBuffer(audioBuffer);
+            const normalizedBlob = bufferToWav(normalizedBuffer);
+
+            // Save to disk immediately to persist
+            const arrayBuffer = await normalizedBlob.arrayBuffer();
+            // @ts-ignore
+            const savedPath = await window.ipcRenderer.invoke('save-audio-file', {
+                buffer: arrayBuffer,
+                name: sound.name
+            });
+
+            // Create a mock file object with the saved path
+            // This ensures App.tsx treats it as a local file with a 'path' property
+            const persistentFile = {
+                name: sound.name + '.wav',
+                path: savedPath,
+                type: 'audio/wav',
+                size: normalizedBlob.size,
+                slice: normalizedBlob.slice.bind(normalizedBlob) // Mimic Blob interface just in case
             };
 
             onSave({
@@ -116,7 +190,7 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                 category: categories[0] || 'Uncategorized',
                 keybind: '',
                 volume: 1.0,
-                file: mockFile as any,
+                file: persistentFile as any,
                 source: 'online'
             });
 
@@ -148,8 +222,6 @@ export const SoundModal: React.FC<SoundModalProps> = ({
         setIsDownloading(true);
         setDownloadProgress(0);
         try {
-            // ... (keep existing logic)
-            // Use canonical URL
             const canonicalUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
             // @ts-ignore
             const path = await window.ipcRenderer.invoke('download-youtube-audio', {
@@ -163,10 +235,39 @@ export const SoundModal: React.FC<SoundModalProps> = ({
             const buffer = await window.ipcRenderer.invoke('read-file', path);
             const blob = new Blob([buffer], { type: 'audio/mpeg' });
             const file = new File([blob], `yt_clip_${youtubeId}.mp3`, { type: 'audio/mpeg' });
-            setFile(file);
-            setSourceType('youtube'); // Set source to youtube
-            setShowTrimmer(true);
 
+            // Auto-normalize
+            // await processAndSetFile(file, 'youtube'); // We can't use processAndSetFile because it sets state.file which is UI state
+            // We want to process it and then allow trimming OR saving.
+
+            // For now, let's load it into the state so the user can Trim it.
+            // But if we want to save it *after* trimming, `AudioTrimmer` returns a File/Blob.
+            // So we need to handle the "Confirm Trim" logic effectively.
+
+            // Let's rely on processAndSetFile to set the `file` state, 
+            // BUT we also need to ensure that when they hit SAVE, it gets saved to disk.
+            // Currently `handleSubmit` calls `onSave` with `file` state.
+            // If `file` is a Blob (no path), `App.tsx` creates a Blob URL (ephemeral).
+
+            // Logic change: When importing from YouTube, we want the *final* result to be saved to disk.
+            // The `AudioTrimmer` returns a Blob (File). 
+            // We should hook into `onSave` in `App.tsx`? No, `App.tsx` doesn't know about normalization/persistence.
+
+            // Better approach: When `handleSubmit` is called, if the file doesn't have a path, WE SAVE IT HERE.
+            // But `handleSubmit` is synchronous/simple. 
+
+            // Let's modify `handleSubmit` to handle saving if needed? 
+            // Or better: Modify `processAndSetFile` to optionally save? No.
+
+            // Let's stick to the current flow:
+            // 1. Download -> `file` state (Blob)
+            // 2. User trims -> `file` state updates (Blob)
+            // 3. User clicks Save -> `handleSubmit`
+            // WE NEED TO INTERCEPT SUBMIT.
+
+            await processAndSetFile(file, 'youtube');
+
+            setShowTrimmer(true);
             if (!name) setName(`YouTube Clip`);
         } catch (err: any) {
             console.error("YouTube import error", err);
@@ -181,12 +282,8 @@ export const SoundModal: React.FC<SoundModalProps> = ({
     if (!isOpen) return null;
 
     const handleFileSelect = (selectedFile: File) => {
-        setFile(selectedFile);
-        setSourceType('local'); // Set source to local
-        // Auto-fill name if empty
-        if (!name) {
-            setName(selectedFile.name.replace(/\.[^/.]+$/, ""));
-        }
+        // Auto-normalize local files
+        processAndSetFile(selectedFile, 'local');
     };
 
     const handleDrop = (e: React.DragEvent) => {
@@ -194,24 +291,50 @@ export const SoundModal: React.FC<SoundModalProps> = ({
         setIsDragging(false);
         const droppedFile = e.dataTransfer.files[0];
         if (droppedFile && droppedFile.type.startsWith('audio/')) {
-            handleFileSelect(droppedFile);
+            handleFileSelect(droppedFile); // Use the new handler
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        // ... existing submit
         e.preventDefault();
         if (name) {
+            let finalFile = file;
+
+            // If we have a file but no path (it's a Blob/File from memory), save it to disk!
+            if (file && !(file as any).path) {
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    // @ts-ignore
+                    const savedPath = await window.ipcRenderer.invoke('save-audio-file', {
+                        buffer: arrayBuffer,
+                        name: name
+                    });
+
+                    finalFile = {
+                        name: file.name,
+                        path: savedPath,
+                        type: file.type,
+                        size: file.size,
+                        slice: file.slice.bind(file)
+                    } as any;
+                } catch (err) {
+                    console.error("Failed to save file during submit:", err);
+                    if (onShowToast) onShowToast("Failed to save sound file to disk.", "error");
+                    return;
+                }
+            }
+
             onSave({
                 name,
                 icon,
                 category,
                 keybind,
                 volume,
-                file: file || null,
+                file: finalFile || null,
                 source: sourceType
             });
-
-            // Show toast for YouTube adds (which happen here)
+            // ... (keep toast logic)
             if (sourceType === 'youtube' && !initialSound && onShowToast) {
                 if (!isPro) {
                     const remaining = 4 - onlineSoundCount;
@@ -223,7 +346,6 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                     onShowToast(`Imported "${name}"!`, 'success');
                 }
             }
-
             onClose();
         }
     };
@@ -253,6 +375,7 @@ export const SoundModal: React.FC<SoundModalProps> = ({
 
                 {!showTrimmer && !initialSound && (
                     <div className="flex border-b border-white/10">
+                        {/* ... Tabs ... */}
                         <button
                             onClick={() => setActiveTab('local')}
                             className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'local' ? 'text-blue-400 border-b-2 border-blue-400 bg-white/5' : 'text-gray-400 hover:text-white'}`}
@@ -260,7 +383,6 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                             Upload File
                         </button>
 
-                        {/* Discover Tab - GATED */}
                         <div className="flex-1 relative group">
                             <button
                                 onClick={() => {
@@ -276,7 +398,6 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                             </button>
                         </div>
 
-                        {/* YouTube Tab - GATED */}
                         <div className="flex-1 relative group">
                             <button
                                 onClick={() => {
@@ -299,8 +420,11 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                         <AudioTrimmer
                             file={file}
                             maxDuration={7}
-                            onConfirm={(trimmedFile) => {
-                                setFile(trimmedFile);
+                            onConfirm={async (trimmedFile) => {
+                                // Re-normalize after trimming (trimming might actually change peak if we cut off a loud part, 
+                                // so we might want to maximize the NEW clip. Or we might want to keep the original level.
+                                // Usually users want the Result to be max volume.
+                                await processAndSetFile(trimmedFile, sourceType);
                                 setShowTrimmer(false);
                                 setActiveTab('local');
                             }}
@@ -308,12 +432,13 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                         />
                     </div>
                 ) : activeTab === 'online' ? (
+                    // ... Online Search ...
                     <div className="p-4 flex-1 overflow-hidden min-h-[400px] flex flex-col">
                         <OnlineSoundSearch onDownload={handleOnlineSoundSelect} />
                     </div>
                 ) : activeTab === 'youtube' ? (
+                    // ... YouTube Tab ...
                     <div className="p-4 flex-1 overflow-hidden min-h-[400px] flex flex-col gap-4">
-                        {/* URL Input */}
                         <div className="flex gap-2">
                             <input
                                 type="text"
@@ -330,7 +455,6 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                             />
                         </div>
 
-                        {/* Embed Player */}
                         {youtubeId ? (
                             <div className="relative aspect-video bg-black rounded-lg overflow-hidden border border-gray-800 shadow-lg">
                                 <iframe
@@ -350,7 +474,6 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                             </div>
                         )}
 
-                        {/* Clipping Controls */}
                         <div className="grid grid-cols-2 gap-3 p-3 bg-gray-900/50 rounded-xl border border-white/5">
                             <div className="flex flex-col gap-1">
                                 <label className="text-[10px] uppercase font-bold text-gray-400">Start Time (s)</label>
@@ -405,7 +528,7 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                                 onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                                 onDragLeave={() => setIsDragging(false)}
                                 onDrop={handleDrop}
-                                onClick={() => fileInputRef.current?.click()}
+                                onClick={() => !isProcessing && fileInputRef.current?.click()}
                                 className={`
                                     border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all
                                     flex flex-col items-center gap-2
@@ -414,26 +537,34 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                                         : file
                                             ? 'border-green-500 bg-green-500/10'
                                             : 'border-gray-600 hover:border-gray-500 hover:bg-gray-700/50'}
+                                    ${isProcessing ? 'opacity-50 cursor-wait' : ''}
                                 `}
                             >
-                                {file ? (
+                                {isProcessing ? (
+                                    <div className="flex flex-col items-center gap-2 py-4">
+                                        <div className="w-8 h-8 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                                        <span className="text-blue-400 text-sm font-bold animate-pulse">Normalizing Audio...</span>
+                                    </div>
+                                ) : file || (initialSound && !file) ? (
                                     <>
                                         <div className="text-2xl">✅</div>
                                         <div className="text-sm font-medium text-white truncate max-w-full">
-                                            {file.name}
+                                            {file ? file.name : initialSound?.name + (initialSound?.path ? ' (Loaded)' : '')}
                                         </div>
-                                        <div className="text-xs text-green-400">Ready. {(file.size / 1024).toFixed(1)} KB</div>
+                                        {file && <div className="text-xs text-green-400">Ready. {(file.size / 1024).toFixed(1)} KB</div>}
 
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setShowTrimmer(true);
-                                            }}
-                                            className="mt-2 px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-xs font-bold text-white flex items-center gap-1 z-10"
-                                        >
-                                            ✂️ Trim Audio
-                                        </button>
+                                        <div className="flex gap-2 mt-2">
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setShowTrimmer(true);
+                                                }}
+                                                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-xs font-bold text-white flex items-center gap-1 z-10"
+                                            >
+                                                ✂️ Trim
+                                            </button>
+                                        </div>
                                     </>
                                 ) : (
                                     <>
@@ -450,6 +581,7 @@ export const SoundModal: React.FC<SoundModalProps> = ({
                                     onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
                                     accept="audio/*"
                                     className="hidden"
+                                    disabled={isProcessing}
                                 />
                             </div>
 

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, protocol, globalShortcut, dialog } from 'electron'
+import { app, BrowserWindow, ipcMain, protocol, globalShortcut, dialog, shell } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs'
@@ -133,6 +133,62 @@ app.whenReady().then(() => {
       return { success: false, error: err }
     }
   })
+
+  ipcMain.handle('save-audio-file', async (_event, { buffer, name }) => {
+    try {
+      const soundsDir = path.join(app.getPath('userData'), 'sounds');
+      if (!fs.existsSync(soundsDir)) {
+        await fs.promises.mkdir(soundsDir, { recursive: true });
+      }
+
+      // Sanitize name
+      const safeName = name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const fileName = `${safeName}-${Date.now()}.wav`; // Assuming WAV from normalization
+      const filePath = path.join(soundsDir, fileName);
+
+      // Buffer comes as ArrayBuffer, convert to Buffer
+      await fs.promises.writeFile(filePath, Buffer.from(buffer));
+
+      return filePath;
+    } catch (err) {
+      console.error('Failed to save audio file:', err);
+      throw err;
+    }
+  });
+
+  ipcMain.handle('delete-sound-file', async (_event, filePath) => {
+    try {
+      if (!filePath) return false;
+
+      // Security check: ensure path is inside userData
+      const userDataPath = app.getPath('userData');
+      const normalizedFilePath = path.normalize(filePath);
+      const normalizedUserDataPath = path.normalize(userDataPath);
+
+      if (!normalizedFilePath.startsWith(normalizedUserDataPath)) {
+        console.warn('Attempted to delete file outside userData:', filePath);
+        return false;
+      }
+
+      if (fs.existsSync(normalizedFilePath)) {
+        await fs.promises.unlink(normalizedFilePath);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error('Failed to delete file:', err);
+      return false;
+    }
+  });
+
+  ipcMain.handle('open-sounds-folder', async () => {
+    const soundsDir = path.join(app.getPath('userData'), 'sounds');
+    if (!fs.existsSync(soundsDir)) {
+      await fs.promises.mkdir(soundsDir, { recursive: true });
+    }
+    await shell.openPath(soundsDir);
+    return true;
+  });
 
   // Online Search Handler
   ipcMain.handle('search-sounds', async (_event, { query, page = 1 }) => {

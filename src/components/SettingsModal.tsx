@@ -201,6 +201,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                     <div className="h-px bg-white/10" />
 
+                    {/* Storage */}
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <label className="text-gray-200 font-medium">Storage</label>
+                            <p className="text-xs text-gray-500">Manage your local sound files</p>
+                        </div>
+                        <button
+                            onClick={() => {
+                                // @ts-ignore
+                                if (window.ipcRenderer) {
+                                    // @ts-ignore
+                                    window.ipcRenderer.invoke('open-sounds-folder');
+                                }
+                            }}
+                            className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-xs font-semibold text-gray-200 border border-gray-500/30 transition-all hover:scale-105 flex items-center gap-2"
+                        >
+                            <span>📂</span> Open Folder
+                        </button>
+                    </div>
+
+                    <div className="h-px bg-white/10" />
+
                     {/* Reset All Data - Destructive */}
                     <div className="flex items-center justify-between pb-2">
                         <div>

@@ -7,6 +7,13 @@ export interface PatchNote {
 export type PatchNotesMap = Record<string, PatchNote[]>;
 
 export const PATCH_NOTES: PatchNotesMap = {
+    "1.0.3": [
+        {
+            type: 'feature',
+            title: 'Auto-Loudness Maximizer 🔊',
+            description: 'New sounds are now automatically boosted and limited to proper broadcast levels. No more quiet clips!',
+        }
+    ],
     "1.0.2": [
         {
             type: 'feature',
