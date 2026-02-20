@@ -12,6 +12,29 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // ... (constants remain same)
 process.env.APP_ROOT = path.join(__dirname, '..')
 
+// Global error handlers to prevent 0x80000003 crashes
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  try {
+    const logPath = path.join(process.env.APP_ROOT || __dirname, 'error_log.txt');
+    const logMessage = `[${new Date().toISOString()}] Uncaught Exception: ${err.message}\nStack: ${err.stack}\n\n`;
+    fs.appendFileSync(logPath, logMessage);
+  } catch (logErr) {
+    console.error('Failed to write to error log:', logErr);
+  }
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  try {
+    const logPath = path.join(process.env.APP_ROOT || __dirname, 'error_log.txt');
+    const logMessage = `[${new Date().toISOString()}] Unhandled Rejection: ${reason}\n\n`;
+    fs.appendFileSync(logPath, logMessage);
+  } catch (logErr) {
+    console.error('Failed to write to error log:', logErr);
+  }
+});
+
 // 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
 export const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron')
@@ -37,7 +60,9 @@ function createWindow() {
 
   // Test active push message to Renderer-process.
   win.webContents.on('did-finish-load', () => {
-    win?.webContents.send('main-process-message', (new Date).toLocaleString())
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('main-process-message', (new Date).toLocaleString())
+    }
   })
 
   if (VITE_DEV_SERVER_URL) {
@@ -58,11 +83,15 @@ autoUpdater.on('error', (err) => {
   console.error('Error in auto-updater: ', err);
 });
 autoUpdater.on('update-available', () => {
-  win?.webContents.send('update-available');
+  if (win && !win.isDestroyed()) {
+    win.webContents.send('update-available');
+  }
 });
 
 autoUpdater.on('update-downloaded', () => {
-  win?.webContents.send('update-downloaded');
+  if (win && !win.isDestroyed()) {
+    win.webContents.send('update-downloaded');
+  }
 });
 
 app.on('window-all-closed', () => {
@@ -318,17 +347,21 @@ app.whenReady().then(() => {
         const readableStream = ytDlpWrap.exec(args);
 
         readableStream.on('progress', (progress: any) => {
-          _event.sender.send('download-progress', progress.percent);
+          if (!_event.sender.isDestroyed()) {
+            _event.sender.send('download-progress', progress.percent);
+          }
         });
 
         readableStream.on('ytDlpEvent', (eventType: string, eventData: string) => {
           // Estimate progress for startup phases to keep UI responsive
-          if (eventType === 'youtube') {
-            if (eventData.includes('Downloading webpage')) _event.sender.send('download-progress', 10);
-            else if (eventData.includes('Extracting URL')) _event.sender.send('download-progress', 5);
-          }
-          else if (eventType === 'info') {
-            if (eventData.includes('Downloading 1 time ranges')) _event.sender.send('download-progress', 25);
+          if (!_event.sender.isDestroyed()) {
+            if (eventType === 'youtube') {
+              if (eventData.includes('Downloading webpage')) _event.sender.send('download-progress', 10);
+              else if (eventData.includes('Extracting URL')) _event.sender.send('download-progress', 5);
+            }
+            else if (eventType === 'info') {
+              if (eventData.includes('Downloading 1 time ranges')) _event.sender.send('download-progress', 25);
+            }
           }
 
           // Keep critical error logging but reduce noise
